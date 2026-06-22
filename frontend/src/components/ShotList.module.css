@@ -1,0 +1,130 @@
+.loading,
+.empty {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-4);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.item {
+  display: flex;
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-subtle);
+  transition: border-color var(--duration-fast);
+}
+
+.item:hover {
+  border-color: var(--border-default);
+}
+
+.number {
+  flex-shrink: 0;
+}
+
+.numBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  color: var(--amber-400);
+  border: 1px solid var(--border-default);
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+.type {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  text-transform: capitalize;
+}
+
+.meta {
+  font-size: var(--fs-xs);
+  text-transform: capitalize;
+}
+
+.metaBadge {
+  font-size: 10px !important;
+  padding: 2px 6px !important;
+}
+
+.desc {
+  line-height: var(--lh-relaxed);
+}
+
+/* ── Shot Notes ───────────────────────────────────────────────────────────── */
+.shotNotes {
+  font-style: italic;
+  line-height: var(--lh-relaxed);
+}
+
+/* ── Shot Actions (edit/delete buttons) ───────────────────────────────────── */
+.shotActions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity var(--duration-fast);
+}
+
+.item:hover .shotActions {
+  opacity: 1;
+}
+
+/* ── Inline Edit Form ─────────────────────────────────────────────────────── */
+.editFormWrap {
+  flex: 1;
+  min-width: 0;
+  padding: var(--sp-2) 0;
+}
+
+.editGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sp-3);
+}
+
+.editActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
+}
+
+@media (max-width: 768px) {
+  .editGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .shotActions {
+    opacity: 1;
+  }
+}

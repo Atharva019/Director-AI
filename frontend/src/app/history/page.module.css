@@ -1,0 +1,161 @@
+.header {
+  margin-bottom: var(--sp-10);
+  text-align: center;
+}
+
+.grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.card {
+  border-radius: var(--radius-xl);
+  background: rgba(19, 19, 31, 0.5);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  overflow: hidden;
+  transition: all var(--duration-normal) var(--ease-out);
+  cursor: pointer;
+}
+
+.card:hover {
+  background: rgba(19, 19, 31, 0.7);
+  border-color: var(--border-default);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-5) var(--sp-6);
+}
+
+.cardIcon {
+  font-size: var(--fs-2xl);
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+}
+
+.cardInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.cardModel {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  margin-bottom: var(--sp-1);
+}
+
+.cardMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  color: var(--text-tertiary);
+  font-size: var(--fs-sm);
+}
+
+.confidencePill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-1) var(--sp-3);
+  border-radius: var(--radius-full);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+}
+
+.confHigh {
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--success);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.confMed {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--warning);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.confLow {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--error);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.expandBar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2);
+  background: rgba(0, 0, 0, 0.2);
+  font-size: var(--fs-xs);
+  color: var(--text-tertiary);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.card:hover .expandBar {
+  color: var(--text-secondary);
+}
+
+.expandArrow {
+  transition: transform var(--duration-fast);
+}
+
+.expandArrowOpen {
+  transform: rotate(180deg);
+}
+
+.expandedContent {
+  padding: 0 var(--sp-6) var(--sp-6);
+  cursor: default;
+}
+
+/* ── Skeletons ───────────────────────────────────────────────────────────── */
+.skeletonCard {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-5) var(--sp-6);
+  border-radius: var(--radius-xl);
+  background: rgba(19, 19, 31, 0.5);
+  border: 1px solid var(--border-subtle);
+}
+
+.skeletonIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-md);
+}
+
+.skeletonText {
+  flex: 1;
+}
+
+.skeletonTitle {
+  height: 20px;
+  width: 120px;
+  margin-bottom: var(--sp-2);
+  border-radius: var(--radius-sm);
+}
+
+.skeletonMeta {
+  height: 16px;
+  width: 200px;
+  border-radius: var(--radius-sm);
+}
+
+.skeletonPill {
+  width: 48px;
+  height: 28px;
+  border-radius: var(--radius-full);
+}

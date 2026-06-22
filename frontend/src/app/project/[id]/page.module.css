@@ -1,0 +1,127 @@
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-6);
+  font-size: var(--fs-sm);
+  animation: fadeIn var(--duration-normal) var(--ease-out);
+}
+
+.breadcrumbLink {
+  color: var(--text-tertiary);
+  transition: color var(--duration-fast);
+}
+
+.breadcrumbLink:hover {
+  color: var(--amber-400);
+}
+
+.breadcrumbSep {
+  color: var(--text-tertiary);
+}
+
+.breadcrumbCurrent {
+  color: var(--text-secondary);
+}
+
+/* ── Project Header ──────────────────────────────────────────────────────── */
+.projectHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-6);
+  padding: var(--sp-6);
+  border-radius: var(--radius-xl);
+  background: rgba(19, 19, 31, 0.4);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-subtle);
+  margin-bottom: var(--sp-8);
+}
+
+.headerInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.headerTop {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+}
+
+.headerBadges {
+  display: flex;
+  gap: var(--sp-2);
+}
+
+.headerActions {
+  display: flex;
+  gap: var(--sp-2);
+  flex-shrink: 0;
+}
+
+/* ── Error ───────────────────────────────────────────────────────────────── */
+.errorBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-3) var(--sp-4) !important;
+  margin-bottom: var(--sp-6);
+  border-color: rgba(239, 68, 68, 0.2) !important;
+  background: rgba(239, 68, 68, 0.06) !important;
+  animation: fadeIn var(--duration-normal);
+}
+
+/* ── Scenes Section ──────────────────────────────────────────────────────── */
+.scenesSection {
+  animation: fadeInUp 600ms var(--ease-out) 200ms backwards;
+}
+
+.scenesHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--sp-6);
+}
+
+.addForm {
+  margin-bottom: var(--sp-6);
+  padding: var(--sp-6) !important;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sp-4);
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.sceneList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.loadingWrap {
+  max-width: 700px;
+}
+
+@media (max-width: 768px) {
+  .projectHeader {
+    flex-direction: column;
+  }
+
+  .headerTop {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+}

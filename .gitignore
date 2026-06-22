@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+.pytest_cache/
+.coverage
+.htmlcov/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+build/
+dist/
+.npm
+.yarn/
+*.tsbuildinfo
+next-env.d.ts
+
+# Firebase & Secrets
+.env
+.env*.local
+backend/*.json
+*.pem
+*.key
+secrets/
+credentials/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Application Specific
+backend/uploads/*
+!backend/uploads/.gitkeep
+graphify-out/

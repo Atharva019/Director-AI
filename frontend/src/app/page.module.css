@@ -1,0 +1,233 @@
+.page {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* ── Background effects ──────────────────────────────────────────────────── */
+.bgGlow1 {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(240, 165, 0, 0.08) 0%, transparent 70%);
+  top: -200px;
+  right: -100px;
+  pointer-events: none;
+}
+
+.bgGlow2 {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(74, 158, 255, 0.06) 0%, transparent 70%);
+  bottom: -200px;
+  left: -100px;
+  pointer-events: none;
+}
+
+.bgGrid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+  mask-image: radial-gradient(ellipse 70% 70% at center, black, transparent);
+}
+
+/* ── Container ───────────────────────────────────────────────────────────── */
+.container {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-16);
+  max-width: 1100px;
+  padding: var(--sp-8);
+  width: 100%;
+}
+
+/* ── Hero ─────────────────────────────────────────────────────────────────── */
+.hero {
+  flex: 1;
+  animation: fadeInUp 800ms var(--ease-out);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-4);
+  border-radius: var(--radius-full);
+  background: var(--amber-glow);
+  border: 1px solid rgba(240, 165, 0, 0.15);
+  color: var(--amber-300);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  margin-bottom: var(--sp-6);
+}
+
+.title {
+  font-size: var(--fs-5xl);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin-bottom: var(--sp-5);
+}
+
+.tagline {
+  font-size: var(--fs-lg);
+  color: var(--text-secondary);
+  line-height: var(--lh-relaxed);
+  max-width: 460px;
+  margin-bottom: var(--sp-8);
+}
+
+.features {
+  display: flex;
+  gap: var(--sp-6);
+  flex-wrap: wrap;
+}
+
+.feature {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+}
+
+.featureIcon {
+  font-size: 1.2rem;
+}
+
+/* ── Auth Card ───────────────────────────────────────────────────────────── */
+.authCard {
+  width: 400px;
+  flex-shrink: 0;
+  padding: var(--sp-8) !important;
+  animation: fadeInUp 800ms var(--ease-out) 200ms backwards;
+}
+
+.authTitle {
+  font-size: var(--fs-2xl);
+  margin-bottom: var(--sp-1);
+}
+
+.authSubtitle {
+  margin-bottom: var(--sp-6);
+}
+
+.googleBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-3);
+  width: 100%;
+  padding: var(--sp-3) var(--sp-6);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.googleBtn:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.googleIcon {
+  width: 20px;
+  height: 20px;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  margin: var(--sp-5) 0;
+  color: var(--text-tertiary);
+  font-size: var(--fs-sm);
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border-subtle);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  animation: fadeIn var(--duration-normal) var(--ease-out);
+}
+
+.toggle {
+  color: var(--text-tertiary);
+}
+
+.toggleBtn {
+  background: none;
+  border: none;
+  color: var(--amber-400);
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+  transition: color var(--duration-fast);
+}
+
+.toggleBtn:hover {
+  color: var(--amber-300);
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .container {
+    flex-direction: column;
+    gap: var(--sp-10);
+  }
+
+  .hero {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .tagline {
+    max-width: 100%;
+  }
+
+  .features {
+    justify-content: center;
+  }
+
+  .authCard {
+    width: 100%;
+    max-width: 420px;
+  }
+}
+
+@media (max-width: 480px) {
+  .title {
+    font-size: 2.5rem;
+  }
+
+  .authCard {
+    padding: var(--sp-6) !important;
+  }
+}

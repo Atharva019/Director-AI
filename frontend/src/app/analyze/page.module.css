@@ -1,0 +1,93 @@
+.header {
+  text-align: center;
+  margin-bottom: var(--sp-10);
+}
+
+.uploaderSection {
+  margin-bottom: var(--sp-8);
+}
+
+.analyzeActions {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--sp-6);
+}
+
+/* ── Loading State ───────────────────────────────────────────────────────── */
+.loadingState {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--sp-8);
+}
+
+.loadingCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-8) var(--sp-12);
+  border-radius: var(--radius-xl);
+  background: rgba(19, 19, 31, 0.6);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  min-width: 320px;
+}
+
+.loadingMsg {
+  font-size: var(--fs-base);
+  color: var(--text-secondary);
+  font-weight: var(--fw-medium);
+  text-align: center;
+  min-height: 1.5em;
+  animation: fadeIn 400ms var(--ease-out);
+}
+
+.loadingBar {
+  width: 200px;
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: var(--bg-elevated);
+  overflow: hidden;
+}
+
+.loadingBarFill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: linear-gradient(90deg, var(--amber-400), var(--blue-400), var(--amber-400));
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* ── Error ───────────────────────────────────────────────────────────────── */
+.errorCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--sp-6);
+  border-color: rgba(239, 68, 68, 0.2) !important;
+  background: rgba(239, 68, 68, 0.06) !important;
+}
+
+/* ── Result ──────────────────────────────────────────────────────────────── */
+.resultSection {
+  margin-bottom: var(--sp-16);
+}
+
+/* ── Modal ───────────────────────────────────────────────────────────────── */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  padding: var(--sp-4);
+}
+
+.modal {
+  width: 100%;
+  max-width: 460px;
+  padding: var(--sp-8) !important;
+}

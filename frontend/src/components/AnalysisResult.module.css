@@ -1,0 +1,210 @@
+.wrapper {
+  border-radius: var(--radius-xl);
+  background: rgba(19, 19, 31, 0.5);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  overflow: hidden;
+}
+
+/* ── Confidence ──────────────────────────────────────────────────────────── */
+.confidence {
+  padding: var(--sp-5) var(--sp-6);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.confLabel {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--sp-2);
+}
+
+.confTrack {
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--bg-elevated);
+  overflow: hidden;
+}
+
+.confFill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width 600ms var(--ease-out);
+}
+
+/* ── Tabs ─────────────────────────────────────────────────────────────────── */
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border-subtle);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-4) var(--sp-5);
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  white-space: nowrap;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color var(--duration-fast), border-color var(--duration-fast);
+}
+
+.tab:hover {
+  color: var(--text-secondary);
+}
+
+.tabActive {
+  color: var(--amber-400) !important;
+  border-bottom-color: var(--amber-400) !important;
+}
+
+/* ── Content ─────────────────────────────────────────────────────────────── */
+.content {
+  padding: var(--sp-6);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+}
+
+/* ── Spec cards grid ─────────────────────────────────────────────────────── */
+.specGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: var(--sp-4);
+}
+
+.spec {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: var(--sp-4);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  text-align: center;
+}
+
+.specIcon {
+  font-size: 1.3rem;
+  margin-bottom: var(--sp-1);
+}
+
+.specValue {
+  font-size: var(--fs-base);
+  color: var(--text-primary);
+}
+
+.specLabel {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ── Sections ────────────────────────────────────────────────────────────── */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.sectionTitle {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Mood */
+.moodText {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-semibold);
+  color: var(--amber-300);
+}
+
+/* Chips */
+.chipList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+
+/* Color swatches */
+.colorSwatches {
+  display: flex;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+.swatch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-1);
+}
+
+.swatchColor {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--border-default);
+  background: var(--bg-elevated);
+}
+
+/* Recommendation lists */
+.recList,
+.recListNumbered {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.recItem {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  color: var(--text-secondary);
+  font-size: var(--fs-base);
+  line-height: var(--lh-relaxed);
+}
+
+.recBullet {
+  flex-shrink: 0;
+}
+
+.stepNum {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--amber-glow);
+  color: var(--amber-400);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  border: 1px solid rgba(240, 165, 0, 0.2);
+}
+
+/* Footer */
+.footer {
+  padding: var(--sp-4) var(--sp-6);
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: center;
+  gap: var(--sp-3);
+}

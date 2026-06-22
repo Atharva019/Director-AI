@@ -1,0 +1,107 @@
+.wrapper {
+  width: 100%;
+}
+
+/* ── Drop Zone ───────────────────────────────────────────────────────────── */
+.dropzone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 240px;
+  border: 2px dashed var(--border-default);
+  border-radius: var(--radius-xl);
+  background: rgba(255, 255, 255, 0.01);
+  cursor: pointer;
+  transition: border-color var(--duration-normal) var(--ease-out),
+              background var(--duration-normal) var(--ease-out),
+              box-shadow var(--duration-normal) var(--ease-out);
+}
+
+.dropzone:hover {
+  border-color: var(--amber-400);
+  background: var(--amber-glow);
+}
+
+.dragActive {
+  border-color: var(--amber-400) !important;
+  background: var(--amber-glow) !important;
+  box-shadow: var(--shadow-glow-amber);
+  animation: borderPulse 1s ease infinite;
+}
+
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.dropContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-8);
+  text-align: center;
+}
+
+.dropIcon {
+  font-size: 3rem;
+  filter: grayscale(30%);
+  transition: filter var(--duration-normal);
+}
+
+.dropzone:hover .dropIcon {
+  filter: grayscale(0%);
+}
+
+.dropTitle {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-medium);
+}
+
+.dropHint {
+  max-width: 240px;
+}
+
+/* ── Preview ─────────────────────────────────────────────────────────────── */
+.previewContainer {
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  border: 1px solid var(--border-default);
+  background: var(--bg-card);
+  animation: scaleIn var(--duration-normal) var(--ease-out);
+}
+
+.previewImgWrap {
+  position: relative;
+  width: 100%;
+  max-height: 400px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-deep);
+}
+
+.previewImg {
+  width: 100%;
+  height: auto;
+  max-height: 400px;
+  object-fit: contain;
+}
+
+.previewInfo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-3) var(--sp-4);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.fileName {
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
+}
