@@ -158,6 +158,14 @@ class ProjectService:
         db: AsyncSession, scene_id: uuid.UUID, **kwargs
     ) -> Shot:
         """Create a new shot under a scene."""
+        if kwargs.get("shot_number") is None:
+            from sqlalchemy import func
+            result = await db.execute(
+                select(func.max(Shot.shot_number)).where(Shot.scene_id == scene_id)
+            )
+            max_num = result.scalar_one_or_none()
+            kwargs["shot_number"] = (max_num or 0) + 1
+
         shot = Shot(scene_id=scene_id, **kwargs)
         db.add(shot)
         await db.flush()

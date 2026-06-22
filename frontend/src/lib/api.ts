@@ -32,7 +32,7 @@ function getBaseUrl(): string {
   return process.env.NEXT_PUBLIC_API_URL ?? `${protocol}//${apiHost}:8000`;
 }
 
-const BASE_URL = getBaseUrl();
+export const BASE_URL = getBaseUrl();
 
 // Helper to retrieve the current auth token, waiting for initialization if needed
 async function getAuthToken(): Promise<string | null> {

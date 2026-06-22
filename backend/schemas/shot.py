@@ -10,7 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field
 class ShotCreate(BaseModel):
     """Payload for creating a new shot."""
 
-    shot_number: int = Field(..., ge=1)
+    shot_number: Optional[int] = Field(None, ge=1)
     shot_type: str = Field(default="", max_length=100)
     camera_angle: str = Field(default="", max_length=100)
     camera_movement: str = Field(default="", max_length=100)

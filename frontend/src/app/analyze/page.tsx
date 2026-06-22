@@ -28,6 +28,17 @@ function AnalyzeContent() {
   const [analysis, setAnalysis] = useState<SceneAnalysis | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loadingMsg, setLoadingMsg] = useState(0);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    } else {
+      setPreviewUrl(null);
+    }
+  }, [file]);
 
   // For "Save to Project" flow
   const [projects, setProjects] = useState<Project[]>([]);
@@ -181,6 +192,7 @@ function AnalyzeContent() {
           <div className={`${styles.resultSection} animate-slide-up`}>
             <AnalysisResultComponent
               result={analysis.analysis_result}
+              imageUrl={previewUrl ?? undefined}
               onSaveToProject={handleSaveToProject}
               onNewAnalysis={handleNewAnalysis}
             />

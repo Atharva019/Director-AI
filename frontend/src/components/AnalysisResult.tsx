@@ -6,6 +6,7 @@ import styles from "./AnalysisResult.module.css";
  
 interface Props {
   result: AnalysisResultType;
+  imageUrl?: string;
   onSaveToProject?: () => void;
   onNewAnalysis?: () => void;
 }
@@ -90,8 +91,9 @@ function ensureArray(val: any): string[] {
   return [String(val)];
 }
  
-export default function AnalysisResult({ result, onSaveToProject, onNewAnalysis }: Props) {
+export default function AnalysisResult({ result, imageUrl, onSaveToProject, onNewAnalysis }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>("lighting");
+  const [showGrid, setShowGrid] = useState(false);
 
   const compositionRules = ensureArray(result.composition_rules);
   const dominantColors = ensureArray(result.dominant_colors);
@@ -101,6 +103,27 @@ export default function AnalysisResult({ result, onSaveToProject, onNewAnalysis 
  
   return (
     <div className={`${styles.wrapper} animate-fade-in-up`}>
+      {/* Image with Overlay */}
+      {imageUrl && (
+        <div className={styles.imageSection}>
+          <div className={styles.imageWrapper}>
+            <img src={imageUrl} alt="Analyzed Scene" className={styles.analyzedImage} />
+            {showGrid && (
+              <div className={styles.compositionGrid}>
+                <div className={styles.gridLineV1} />
+                <div className={styles.gridLineV2} />
+              </div>
+            )}
+          </div>
+          <button 
+            className={`btn btn-sm ${showGrid ? "btn-primary" : "btn-secondary"}`}
+            onClick={() => setShowGrid(!showGrid)}
+          >
+            {showGrid ? "Hide Composition Grid" : "Show Rule of Thirds Grid"}
+          </button>
+        </div>
+      )}
+
       {/* Confidence */}
       <ConfidenceBar score={result.confidence_score} />
  

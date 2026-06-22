@@ -208,3 +208,53 @@
   justify-content: center;
   gap: var(--sp-3);
 }
+
+/* ── Image Overlay ───────────────────────────────────────────────────────── */
+.imageSection {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-4);
+  align-items: center;
+}
+
+.imageWrapper {
+  position: relative;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  max-width: 100%;
+  border: 1px solid var(--border-subtle);
+}
+
+.analyzedImage {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  max-height: 400px;
+  object-fit: contain;
+}
+
+.compositionGrid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.compositionGrid::before,
+.compositionGrid::after,
+.gridLineV1,
+.gridLineV2 {
+  content: "";
+  position: absolute;
+  background: rgba(240, 165, 0, 0.6);
+  box-shadow: 0 0 4px rgba(240, 165, 0, 0.4);
+}
+
+.compositionGrid::before { top: 33.33%; left: 0; right: 0; height: 1px; }
+.compositionGrid::after { top: 66.66%; left: 0; right: 0; height: 1px; }
+.gridLineV1 { left: 33.33%; top: 0; bottom: 0; width: 1px; }
+.gridLineV2 { left: 66.66%; top: 0; bottom: 0; width: 1px; }

@@ -6,6 +6,7 @@ import AuthGuard from "@/components/AuthGuard";
 import Navbar from "@/components/Navbar";
 import SceneCard from "@/components/SceneCard";
 import { apiGet, apiPost, apiDel, apiPut } from "@/lib/api";
+import { generateProjectPdf } from "@/lib/exportPdf";
 import type { Project, Scene, LocationType, TimeOfDay, ProjectStatus, Genre } from "@/types";
 import styles from "./page.module.css";
 
@@ -61,6 +62,9 @@ function ProjectContent() {
 
   // ── Scene Edit state ──────────────────────────────────────────────────────
   const [editingScene, setEditingScene] = useState<Scene | null>(null);
+
+  // ── Export state ──────────────────────────────────────────────────────────
+  const [exportingPdf, setExportingPdf] = useState(false);
 
   // ── Project Edit state ────────────────────────────────────────────────────
   const [showEditProject, setShowEditProject] = useState(false);
@@ -126,6 +130,18 @@ function ProjectContent() {
       setError(err.message);
     } finally {
       setSavingProject(false);
+    }
+  };
+
+  const handleExportPdf = async () => {
+    if (!project) return;
+    setExportingPdf(true);
+    try {
+      await generateProjectPdf(project, scenes);
+    } catch (err: any) {
+      setError(err.message || "Failed to generate PDF");
+    } finally {
+      setExportingPdf(false);
     }
   };
 
@@ -262,6 +278,13 @@ function ProjectContent() {
             )}
           </div>
           <div className={styles.headerActions}>
+            <button 
+              className="btn btn-secondary btn-sm" 
+              onClick={handleExportPdf}
+              disabled={exportingPdf}
+            >
+              {exportingPdf ? "Generating..." : "📄 Export PDF"}
+            </button>
             <button className="btn btn-ghost btn-sm" onClick={handleOpenEditProject}>
               ✏️ Edit
             </button>
