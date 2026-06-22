@@ -88,7 +88,3 @@ npm run dev
 ```
 
 Visit `http://localhost:3000` to start directing!
-
-## License 📄
-
-This project is licensed under the MIT License.
