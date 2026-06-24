@@ -80,8 +80,30 @@ class SceneAnalyzer:
         if not path.exists():
             raise FileNotFoundError(f"Image not found: {image_path}")
 
-        # 2. Read and encode to base64
+        # 2. Read, compress, and encode to base64
         image_bytes = path.read_bytes()
+        
+        # Groq's Vision API has a strict 4MB base64 limit. We must resize/compress.
+        import io
+        from PIL import Image
+        
+        try:
+            with Image.open(io.BytesIO(image_bytes)) as img:
+                # Convert to RGB if it's not (e.g. RGBA/PNG)
+                if img.mode != "RGB":
+                    img = img.convert("RGB")
+                
+                # Resize if larger than 1024px to heavily reduce base64 size
+                max_size = (1024, 1024)
+                img.thumbnail(max_size, Image.Resampling.LANCZOS)
+                
+                # Save compressed JPEG to memory buffer
+                buffer = io.BytesIO()
+                img.save(buffer, format="JPEG", quality=85)
+                image_bytes = buffer.getvalue()
+        except Exception as e:
+            logger.warning("Image compression failed, using original bytes: %s", e)
+
         image_b64 = base64.b64encode(image_bytes).decode("utf-8")
 
         # 3. Send to Groq
