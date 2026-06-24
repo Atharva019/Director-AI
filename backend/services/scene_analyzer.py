@@ -10,7 +10,7 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from services.gemini_service import GeminiService
+from services.groq_service import GroqService
 from utils.prompts import SCENE_ANALYSIS_PROMPT
 
 logger = logging.getLogger(__name__)
@@ -41,8 +41,8 @@ EXPECTED_KEYS = [
 class SceneAnalyzer:
     """Orchestrates AI-powered analysis of film stills and reference images."""
 
-    def __init__(self, ai_client: Optional[GeminiService] = None) -> None:
-        self.ai_client = ai_client or GeminiService()
+    def __init__(self, ai_client: Optional[GroqService] = None) -> None:
+        self.ai_client = ai_client or GroqService()
 
     # ── Public API ────────────────────────────────────────────────────────
 
@@ -84,8 +84,8 @@ class SceneAnalyzer:
         image_bytes = path.read_bytes()
         image_b64 = base64.b64encode(image_bytes).decode("utf-8")
 
-        # 3. Send to Gemini
-        logger.info("Sending image %s to Gemini for analysis (model=%s)", path.name, model or "default")
+        # 3. Send to Groq
+        logger.info("Sending image %s to Groq for analysis (model=%s)", path.name, model or "default")
         response = await self.ai_client.analyze_image(
             image_base64=image_b64,
             prompt=SCENE_ANALYSIS_PROMPT,
@@ -143,7 +143,7 @@ class SceneAnalyzer:
                 pass
 
         # Fallback: return raw text as a partial result
-        logger.warning("Could not parse structured JSON from Gemini response; returning raw text.")
+        logger.warning("Could not parse structured JSON from Groq response; returning raw text.")
         return {
             "raw_response": raw,
             "lighting_setup": "",

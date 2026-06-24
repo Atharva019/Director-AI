@@ -61,14 +61,14 @@ async def lifespan(app: FastAPI):
     upload_dir.mkdir(parents=True, exist_ok=True)
     logger.info("Upload directory ready: %s", upload_dir.resolve())
 
-    # 4. Verify Gemini configuration
-    if not settings.GEMINI_API_KEY:
+    # 4. Verify Groq configuration
+    if not settings.GROQ_API_KEY:
         logger.warning(
-            "GEMINI_API_KEY is NOT set in your environment variables. "
-            "Image analysis will fail until you provide a valid Google AI Studio API key."
+            "GROQ_API_KEY is NOT set in your environment variables. "
+            "Image analysis will fail until you provide a valid Groq API key."
         )
     else:
-        logger.info("Gemini API key detected. Model set to %s", settings.GEMINI_DEFAULT_MODEL)
+        logger.info("Groq API key detected. Model set to %s", settings.GROQ_DEFAULT_MODEL)
 
     yield  # ← application runs here
 
