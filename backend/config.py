@@ -29,7 +29,7 @@ class Settings(BaseSettings):
 
     # ── Groq (LLM) ─────────────────────────────────────────────────────
     GROQ_API_KEY: str = ""
-    GROQ_DEFAULT_MODEL: str = "llama-4-scout-17b-16e-instruct"
+    GROQ_DEFAULT_MODEL: str = "qwen/qwen3.6-27b"
 
     # ── Firebase Auth ─────────────────────────────────────────────────────
     FIREBASE_CREDENTIALS_PATH: str = "./firebase-service-account.json"
