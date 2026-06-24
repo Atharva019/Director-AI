@@ -3,8 +3,8 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Float, String, Text, DateTime, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy import String, ForeignKey, DateTime, Float, JSON
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.database import Base
@@ -28,7 +28,7 @@ class SceneAnalysis(Base):
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
     image_path: Mapped[str] = mapped_column(String(512), nullable=False)
-    analysis_result: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    analysis_result: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
     model_used: Mapped[str] = mapped_column(String(128), nullable=False, default="")
     confidence_score: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     created_at: Mapped[datetime] = mapped_column(

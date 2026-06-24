@@ -6,7 +6,7 @@ import AuthGuard from "@/components/AuthGuard";
 import Navbar from "@/components/Navbar";
 import ProjectCard from "@/components/ProjectCard";
 import { apiGet, apiPut, apiDel } from "@/lib/api";
-import type { Project, Genre, ProjectStatus } from "@/types";
+import type { Project, Genre, ProjectStatus, SceneAnalysis } from "@/types";
 import styles from "./page.module.css";
 
 const GENRE_OPTIONS: Genre[] = [
@@ -32,6 +32,10 @@ function DashboardContent() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [genreFilter, setGenreFilter] = useState<string>("all");
+
+  const [recentAnalyses, setRecentAnalyses] = useState<SceneAnalysis[]>([]);
+  const [analysesLoading, setAnalysesLoading] = useState(true);
 
   // ── Edit modal state ──────────────────────────────────────────────────────
   const [editingProject, setEditingProject] = useState<Project | null>(null);
@@ -49,6 +53,15 @@ function DashboardContent() {
       .then(setProjects)
       .catch(console.error)
       .finally(() => setLoading(false));
+
+    apiGet<SceneAnalysis[]>("/api/v1/analyses")
+      .then((data) => {
+        // Backend returns items or maybe just array
+        const items = Array.isArray(data) ? data : (data as any).items || [];
+        setRecentAnalyses(items.slice(0, 5));
+      })
+      .catch(console.error)
+      .finally(() => setAnalysesLoading(false));
   }, []);
 
   const filtered = useMemo(() => {
@@ -64,8 +77,11 @@ function DashboardContent() {
     if (statusFilter !== "all") {
       result = result.filter((p) => p.status === statusFilter);
     }
+    if (genreFilter !== "all") {
+      result = result.filter((p) => p.genre === genreFilter);
+    }
     return result;
-  }, [projects, search, statusFilter]);
+  }, [projects, search, statusFilter, genreFilter]);
 
   // ── Edit handlers ─────────────────────────────────────────────────────────
   const handleEditOpen = useCallback((project: Project) => {
@@ -132,87 +148,164 @@ function DashboardContent() {
     <div className="page-wrapper">
       <Navbar />
       <div className="page-content container">
-        {/* Header */}
-        <div className={styles.header}>
-          <div>
-            <h2 className={styles.title}>Your Projects</h2>
-            <p className="text-secondary text-sm">
-              {projects.length} project{projects.length !== 1 ? "s" : ""}
-            </p>
-          </div>
-          <Link href="/project/new" className="btn btn-primary btn-lg">
-            ✨ New Project
-          </Link>
-        </div>
-
-        {/* Search / Filter */}
-        <div className={styles.toolbar}>
-          <div className={styles.searchWrap}>
-            <span className={styles.searchIcon}>🔍</span>
-            <input
-              type="text"
-              className={`input ${styles.searchInput}`}
-              placeholder="Search projects…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-          <select
-            className={`select ${styles.filter}`}
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="all">All Status</option>
-            <option value="draft">Draft</option>
-            <option value="in_production">In Production</option>
-            <option value="completed">Completed</option>
-          </select>
-        </div>
-
-        {/* Loading skeletons */}
-        {loading && (
-          <div className={`grid grid-cols-3 ${styles.grid}`}>
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="skeleton skeleton-card" />
-            ))}
-          </div>
-        )}
-
-        {/* Empty state */}
-        {!loading && filtered.length === 0 && (
-          <div className="empty-state animate-fade-in">
-            <div className="empty-state-icon">🎬</div>
-            <h4 className="empty-state-title">
-              {search || statusFilter !== "all"
-                ? "No matching projects"
-                : "Create your first project"}
-            </h4>
-            <p className="empty-state-desc">
-              {search || statusFilter !== "all"
-                ? "Try adjusting your search or filters."
-                : "Start by creating a new filmmaking project. You'll be able to add scenes, plan shots, and analyze cinematography."}
-            </p>
-            {!search && statusFilter === "all" && (
-              <Link href="/project/new" className="btn btn-primary btn-lg mt-4">
-                ✨ Create Project
+        <div className={styles.layout}>
+          {/* Main Content */}
+          <div className={styles.mainContent}>
+            {/* Header */}
+            <div className={styles.header}>
+              <div>
+                <h2 className={styles.title}>Your Projects</h2>
+                <p className="text-secondary text-sm">
+                  {projects.length} project{projects.length !== 1 ? "s" : ""}
+                </p>
+              </div>
+              <Link href="/project/new" className="btn btn-primary btn-lg">
+                ✨ New Project
               </Link>
+            </div>
+
+            {/* Search / Filter */}
+            <div className={styles.toolbar}>
+              <div className={styles.searchWrap}>
+                <span className={styles.searchIcon}>🔍</span>
+                <input
+                  type="text"
+                  className={`input ${styles.searchInput}`}
+                  placeholder="Search projects…"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+              <div className={styles.filtersWrap}>
+                <select
+                  className={`select ${styles.filter}`}
+                  value={genreFilter}
+                  onChange={(e) => setGenreFilter(e.target.value)}
+                >
+                  <option value="all">All Genres</option>
+                  {GENRE_OPTIONS.map((g) => (
+                    <option key={g} value={g}>
+                      {g}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  className={`select ${styles.filter}`}
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
+                  <option value="all">All Status</option>
+                  <option value="draft">Draft</option>
+                  <option value="in_production">In Production</option>
+                  <option value="completed">Completed</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Loading skeletons */}
+            {loading && (
+              <div className={`grid grid-cols-3 ${styles.grid}`}>
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="skeleton skeleton-card" />
+                ))}
+              </div>
+            )}
+
+            {/* Empty state */}
+            {!loading && filtered.length === 0 && (
+              <div className="empty-state animate-fade-in">
+                <div className="empty-state-icon">🎬</div>
+                <h4 className="empty-state-title">
+                  {search || statusFilter !== "all" || genreFilter !== "all"
+                    ? "No matching projects"
+                    : "Create your first project"}
+                </h4>
+                <p className="empty-state-desc">
+                  {search || statusFilter !== "all" || genreFilter !== "all"
+                    ? "Try adjusting your search or filters."
+                    : "Start by creating a new filmmaking project. You'll be able to add scenes, plan shots, and analyze cinematography."}
+                </p>
+                {!search && statusFilter === "all" && genreFilter === "all" && (
+                  <Link href="/project/new" className="btn btn-primary btn-lg mt-4">
+                    ✨ Create Project
+                  </Link>
+                )}
+              </div>
+            )}
+
+            {/* Project grid */}
+            {!loading && filtered.length > 0 && (
+              <div className={`grid grid-cols-3 stagger ${styles.grid}`}>
+                {filtered.map((p) => (
+                  <ProjectCard
+                    key={p.id}
+                    project={p}
+                    onEdit={handleEditOpen}
+                    onDelete={handleDelete}
+                  />
+                ))}
+              </div>
             )}
           </div>
-        )}
 
-        {/* Project grid */}
-        {!loading && filtered.length > 0 && (
-          <div className={`grid grid-cols-3 stagger ${styles.grid}`}>
-            {filtered.map((p) => (
-              <ProjectCard
-                key={p.id}
-                project={p}
-                onEdit={handleEditOpen}
-                onDelete={handleDelete}
-              />
-            ))}
-          </div>
-        )}
+          {/* Sidebar */}
+          <aside className={styles.sidebar}>
+            <div className={styles.sidebarHeader}>
+              <h3 className={styles.sidebarTitle}>Recent Analyses</h3>
+              <Link href="/history" className={styles.viewAllLink}>
+                View all
+              </Link>
+            </div>
+            
+            <div className={styles.sidebarContent}>
+              {analysesLoading ? (
+                Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className={`skeleton ${styles.miniCardSkeleton}`} />
+                ))
+              ) : recentAnalyses.length === 0 ? (
+                <div className={styles.emptySidebar}>
+                  <p className="text-secondary text-sm">No analyses yet.</p>
+                  <Link href="/analyze" className="btn btn-ghost btn-sm mt-2">
+                    Analyze Image
+                  </Link>
+                </div>
+              ) : (
+                <div className={styles.miniCardList}>
+                  {recentAnalyses.map((analysis) => (
+                    <Link
+                      key={analysis.id}
+                      href="/history"
+                      className={styles.miniCard}
+                    >
+                      <div className={styles.miniCardThumb}>
+                        {analysis.image_path ? (
+                          <img
+                            src={`/api/v1${analysis.image_path}`}
+                            alt="Analysis thumbnail"
+                            className={styles.thumbImg}
+                          />
+                        ) : (
+                          <div className={styles.thumbPlaceholder}>📷</div>
+                        )}
+                      </div>
+                      <div className={styles.miniCardInfo}>
+                        <h4 className={styles.miniCardMood}>
+                          {analysis.analysis_result.overall_mood || "Analysis"}
+                        </h4>
+                        <p className={styles.miniCardDate}>
+                          {new Date(analysis.created_at).toLocaleDateString(undefined, {
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          </aside>
+        </div>
       </div>
 
       {/* ── Edit Project Modal ─────────────────────────────────────────────── */}

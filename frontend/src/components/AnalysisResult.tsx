@@ -151,6 +151,60 @@ export default function AnalysisResult({ result, imageUrl, onSaveToProject, onNe
               <SpecCard label="Color Temperature" value={result.color_temperature} icon="🌡️" />
               <SpecCard label="Lighting Ratio" value={result.lighting_ratio} icon="⚖️" />
             </div>
+
+            {/* Lighting Diagram */}
+            <div className={styles.section}>
+              <h6 className={styles.sectionTitle}>Overhead Diagram</h6>
+              <div className={styles.lightingDiagram}>
+                <svg viewBox="0 0 300 300" className={styles.diagramSvg}>
+                  <defs>
+                    <linearGradient id="keyGrad" x1="0" y1="1" x2="1" y2="0">
+                      <stop offset="0%" stopColor="var(--amber-400)" stopOpacity="0.4" />
+                      <stop offset="100%" stopColor="var(--amber-400)" stopOpacity="0" />
+                    </linearGradient>
+                    <linearGradient id="fillGrad" x1="1" y1="1" x2="0" y2="0">
+                      <stop offset="0%" stopColor="var(--blue-400)" stopOpacity="0.3" />
+                      <stop offset="100%" stopColor="var(--blue-400)" stopOpacity="0" />
+                    </linearGradient>
+                    <linearGradient id="backGrad" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor="#c084fc" stopOpacity="0.3" />
+                      <stop offset="100%" stopColor="#c084fc" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+
+                  {/* Field of View */}
+                  <polygon points="150,245 90,60 210,60" className={styles.fov} />
+
+                  {/* Light Beams */}
+                  <line x1="60" y1="220" x2="140" y2="140" className={styles.lightBeam} stroke="url(#keyGrad)" strokeWidth="45" />
+                  <line x1="240" y1="230" x2="160" y2="140" className={styles.lightBeam} stroke="url(#fillGrad)" strokeWidth="30" />
+                  <line x1="100" y1="40" x2="140" y2="110" className={styles.lightBeam} stroke="url(#backGrad)" strokeWidth="35" />
+
+                  {/* Subject */}
+                  <circle cx="150" cy="130" r="18" className={styles.subject} />
+                  <text x="150" y="165" textAnchor="middle" className={styles.label}>Subject</text>
+
+                  {/* Camera */}
+                  <rect x="135" y="260" width="30" height="16" rx="4" className={styles.camera} />
+                  <polygon points="140,260 160,260 150,245" className={styles.cameraLens} />
+                  <text x="150" y="292" textAnchor="middle" className={styles.label}>Camera</text>
+
+                  {/* Lights */}
+                  {/* Key */}
+                  <circle cx="60" cy="220" r="12" className={styles.lightKey} />
+                  <text x="60" y="245" textAnchor="middle" className={styles.label}>Key Light</text>
+
+                  {/* Fill */}
+                  <circle cx="240" cy="230" r="10" className={styles.lightFill} />
+                  <text x="240" y="255" textAnchor="middle" className={styles.label}>Fill Light</text>
+
+                  {/* Back */}
+                  <circle cx="100" cy="40" r="10" className={styles.lightBack} />
+                  <text x="100" y="25" textAnchor="middle" className={styles.label}>Back Light</text>
+                </svg>
+              </div>
+            </div>
+
             <div className={styles.section}>
               <h6 className={styles.sectionTitle}>Setup Description</h6>
               <p className="text-secondary">{result.lighting_setup}</p>

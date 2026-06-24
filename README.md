@@ -1,90 +1,110 @@
-# Director AI 🎬
+# 🎬 Director AI
 
-Director AI is a powerful cinematography companion application that helps filmmakers plan, manage, and analyze scenes and shots. It leverages AI vision models to analyze reference images and provide insights on lighting, camera settings, composition, and mood.
+Director AI is a powerful, local-first cinematography companion application. It acts as your AI-powered Director of Photography—helping filmmakers plan projects, organize scenes, build shot lists, and automatically reverse-engineer lighting and camera settings from reference images using local Vision AI models.
 
-## Features ✨
+## ✨ Key Features
 
-- **Project Management**: Create and manage filmmaking projects with genres and production statuses.
-- **Scene & Shot Planning**: Define scenes (time of day, location, mood) and break them down into specific shots (camera angles, movements, lenses).
-- **AI Cinematography Analysis**: Upload reference images or film stills and get AI-powered breakdowns of lighting setups, focal lengths, framing, color palettes, and setup instructions using local models via Ollama.
-- **Analysis History & Attachments**: Save AI analyses directly to your scenes and review your history over time.
-- **Beautiful UI**: Modern, glassmorphic, and highly responsive dark-themed user interface built with Vanilla CSS modules and Next.js.
+- **Project Management**: Create and organize filmmaking projects with dynamic statuses, genres, and rich descriptions. Search and filter projects straight from your dashboard.
+- **Scene & Shot Planning**: Define scenes (interior/exterior, time of day, mood) and break them down into highly specific shots (camera angles, movements, and focal lengths).
+- **AI Cinematography Analysis**: Upload any reference film still, and local AI (powered by Ollama and `gemma3:4b` or `llava`) will break down the exact lighting setup, focal length, framing, color palettes, and practical set instructions.
+- **Visual Enhancements**:
+  - **Composition Overlays**: Toggle a Rule-of-Thirds grid over your analyzed images.
+  - **Color Palettes**: Automatically extract and display the dominant color swatches for color-grading references.
+  - **Lighting Diagrams**: Dynamically generated 3-point overhead lighting diagrams (Key, Fill, Back light) based on the AI's analysis of the scene.
+- **Call Sheet Exports**: Export your entire project's shot list into a beautifully formatted, print-ready PDF with a single click.
+- **Beautiful UI**: A highly responsive, premium dark-themed interface built using glassmorphism, vanilla CSS modules, and Next.js.
+- **Fully Tested**: Automated CI/CD-ready test suites using **Pytest** for the backend and **Vitest** for the frontend.
 
-## Tech Stack 🛠️
+---
+
+## 🛠️ Tech Stack
 
 ### Frontend
 - **Framework**: Next.js (App Router, TypeScript)
-- **Styling**: Vanilla CSS Modules (Glassmorphism, CSS Variables)
-- **Authentication**: Firebase Auth (Google Sign-In / Email)
+- **Styling**: Vanilla CSS Modules (Glassmorphism, CSS Custom Properties)
+- **Authentication**: Firebase Auth (Google Sign-In, Email/Password)
+- **Testing**: Vitest, React Testing Library
+- **PDF Generation**: jsPDF, jsPDF-AutoTable
 
 ### Backend
-- **Framework**: FastAPI (Python, async)
-- **Database**: PostgreSQL (with asyncpg & SQLAlchemy)
-- **AI Integration**: Ollama (Running local models like `gemma3:4b` for vision tasks)
-- **Storage**: Local file system (or configurable cloud storage)
+- **Framework**: FastAPI (Python, fully async)
+- **Database**: PostgreSQL (via `asyncpg` & SQLAlchemy)
+- **AI Integration**: Ollama (Running local vision models)
+- **Storage**: Local static file serving
 - **Caching**: Redis
+- **Testing**: Pytest, Pytest-Asyncio, HTTPX, aioSQLite
 
-## Prerequisites 📋
+---
 
+## 📋 Prerequisites
+
+Before you start, make sure you have the following installed:
 - [Node.js](https://nodejs.org/) (v18+)
 - [Python](https://www.python.org/) (3.10+)
 - [Docker](https://www.docker.com/) & Docker Compose
-- [Ollama](https://ollama.ai/) installed locally (with `gemma3:4b` or your preferred vision model pulled)
+- [Ollama](https://ollama.ai/) running locally (with a vision model pulled, e.g., `ollama run llava` or `gemma3:4b`)
 
-## Getting Started 🚀
+---
 
-### 1. Backend Setup
+## 🚀 Getting Started
 
-Navigate to the `backend` directory and set up your Python environment:
+### 1. Database & Infrastructure
+Start the PostgreSQL and Redis services from the project root using Docker:
+```bash
+docker-compose up -d
+```
 
+### 2. Backend Setup
+Navigate to the `backend` directory, set up your Python environment, and start the API:
 ```bash
 cd backend
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
-```
 
-Start the Postgres and Redis services using Docker Compose from the project root:
-```bash
-cd ..
-docker-compose up -d
-```
-
-Copy the example environment file and configure it:
-```bash
-cd backend
+# Configure environment variables
 cp .env.example .env
 ```
-Ensure your `OLLAMA_DEFAULT_MODEL` is set correctly in `.env` (e.g., `gemma3:4b`) and your Firebase admin SDK JSON file is placed at the correct path.
+Ensure your `OLLAMA_DEFAULT_MODEL` is set in `.env` and your `firebase-service-account.json` is correctly linked.
 
-Run the FastAPI development server:
+Start the FastAPI development server:
 ```bash
 uvicorn main:app --reload
 ```
 
-### 2. Frontend Setup
-
-Navigate to the `frontend` directory:
-
+### 3. Frontend Setup
+Navigate to the `frontend` directory, install dependencies, and start the UI:
 ```bash
 cd frontend
 npm install
-```
 
-Create a `.env.local` file and add your Firebase client configuration:
-```env
-NEXT_PUBLIC_FIREBASE_API_KEY="your-api-key"
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="your-auth-domain"
-NEXT_PUBLIC_FIREBASE_PROJECT_ID="your-project-id"
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="your-storage-bucket"
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="your-sender-id"
-NEXT_PUBLIC_FIREBASE_APP_ID="your-app-id"
-NEXT_PUBLIC_API_URL="http://localhost:8000"
+# Configure Firebase environment variables
+cp .env.local.example .env.local
 ```
+*(Ensure you fill out `.env.local` with your Firebase project credentials.)*
 
 Start the Next.js development server:
 ```bash
 npm run dev
 ```
 
-Visit `http://localhost:3000` to start directing!
+Visit `http://localhost:3000` and start directing!
+
+---
+
+## 🧪 Running Tests
+
+Director AI is built to be production-ready and includes full testing suites for both the backend API and frontend components.
+
+**Run Backend Tests:**
+```bash
+cd backend
+source venv/bin/activate
+PYTHONPATH=. pytest
+```
+
+**Run Frontend Tests:**
+```bash
+cd frontend
+npm test
+```
