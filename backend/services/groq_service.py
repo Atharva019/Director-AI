@@ -120,7 +120,10 @@ class GroqService:
                         }
                     ]
                 }
-            ]
+            ],
+            "temperature": 0.4,
+            "max_tokens": 4096,
+            "response_format": {"type": "json_object"}
         }
 
         raw_response = await self._request(body)
