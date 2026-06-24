@@ -28,7 +28,7 @@ from routers import (
     shots_router,
     analysis_router,
 )
-from services.ollama_service import OllamaService
+
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -61,15 +61,14 @@ async def lifespan(app: FastAPI):
     upload_dir.mkdir(parents=True, exist_ok=True)
     logger.info("Upload directory ready: %s", upload_dir.resolve())
 
-    # 4. Verify Ollama connectivity (non-blocking)
-    ollama = OllamaService()
-    if await ollama.health_check():
-        logger.info("Ollama is reachable at %s", settings.OLLAMA_BASE_URL)
-    else:
+    # 4. Verify Gemini configuration
+    if not settings.GEMINI_API_KEY:
         logger.warning(
-            "Ollama is NOT reachable at %s – image analysis will fail until it is available.",
-            settings.OLLAMA_BASE_URL,
+            "GEMINI_API_KEY is NOT set in your environment variables. "
+            "Image analysis will fail until you provide a valid Google AI Studio API key."
         )
+    else:
+        logger.info("Gemini API key detected. Model set to %s", settings.GEMINI_DEFAULT_MODEL)
 
     yield  # ← application runs here
 
