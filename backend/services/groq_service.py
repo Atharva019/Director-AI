@@ -55,7 +55,11 @@ class GroqService:
                     response.raise_for_status()
                     return response.json()
             except (httpx.HTTPStatusError, httpx.RequestError, httpx.TimeoutException) as exc:
-                last_exc = exc
+                err_detail = str(exc)
+                if isinstance(exc, httpx.HTTPStatusError):
+                    err_detail += f" | Response: {exc.response.text}"
+                last_exc = Exception(err_detail)
+                
                 if attempt < self.MAX_RETRIES:
                     wait = self.BACKOFF_BASE ** attempt
                     logger.warning(
@@ -116,8 +120,7 @@ class GroqService:
                         }
                     ]
                 }
-            ],
-            "temperature": 0.4
+            ]
         }
 
         raw_response = await self._request(body)
