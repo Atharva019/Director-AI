@@ -29,7 +29,7 @@ class Settings(BaseSettings):
 
     # ── Gemini (LLM) ─────────────────────────────────────────────────────
     GEMINI_API_KEY: str = ""
-    GEMINI_DEFAULT_MODEL: str = "gemini-1.5-flash"
+    GEMINI_DEFAULT_MODEL: str = "gemini-2.5-flash"
 
     # ── Firebase Auth ─────────────────────────────────────────────────────
     FIREBASE_CREDENTIALS_PATH: str = "./firebase-service-account.json"
