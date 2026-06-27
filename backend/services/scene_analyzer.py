@@ -10,7 +10,7 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from services.groq_service import GroqService
+from services.ai_provider import AIProvider
 from utils.prompts import SCENE_ANALYSIS_PROMPT
 
 logger = logging.getLogger(__name__)
@@ -41,8 +41,8 @@ EXPECTED_KEYS = [
 class SceneAnalyzer:
     """Orchestrates AI-powered analysis of film stills and reference images."""
 
-    def __init__(self, ai_client: Optional[GroqService] = None) -> None:
-        self.ai_client = ai_client or GroqService()
+    def __init__(self, ai_client: Optional[AIProvider] = None) -> None:
+        self.ai_client = ai_client or AIProvider()
 
     # ── Public API ────────────────────────────────────────────────────────
 
@@ -106,8 +106,8 @@ class SceneAnalyzer:
 
         image_b64 = base64.b64encode(image_bytes).decode("utf-8")
 
-        # 3. Send to Groq
-        logger.info("Sending image %s to Groq for analysis (model=%s)", path.name, model or "default")
+        # 3. Send to AI provider (Groq → Gemini fallback)
+        logger.info("Sending image %s for AI analysis (model=%s)", path.name, model or "default")
         response = await self.ai_client.analyze_image(
             image_base64=image_b64,
             prompt=SCENE_ANALYSIS_PROMPT,
@@ -116,10 +116,12 @@ class SceneAnalyzer:
 
         # 4. Parse response
         raw_text: str = response.get("response", "")
-        model_used: str = response.get("model", model or self.ai_client.default_model)
+        model_used: str = response.get("model", model or "unknown")
+        provider_used: str = response.get("provider", "unknown")
 
         analysis = self._parse_response(raw_text)
         analysis["model_used"] = model_used
+        analysis["provider_used"] = provider_used
 
         # If the model didn't include a confidence score, infer one from key coverage.
         if "confidence_score" not in analysis or not isinstance(analysis.get("confidence_score"), (int, float)):
@@ -165,7 +167,7 @@ class SceneAnalyzer:
                 pass
 
         # Fallback: return raw text as a partial result
-        logger.warning("Could not parse structured JSON from Groq response; returning raw text.")
+        logger.warning("Could not parse structured JSON from AI response; returning raw text.")
         return {
             "raw_response": raw,
             "lighting_setup": "",

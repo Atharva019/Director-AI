@@ -61,14 +61,25 @@ async def lifespan(app: FastAPI):
     upload_dir.mkdir(parents=True, exist_ok=True)
     logger.info("Upload directory ready: %s", upload_dir.resolve())
 
-    # 4. Verify Groq configuration
-    if not settings.GROQ_API_KEY:
-        logger.warning(
-            "GROQ_API_KEY is NOT set in your environment variables. "
-            "Image analysis will fail until you provide a valid Groq API key."
-        )
+    # 4. Verify AI provider configuration
+    providers = []
+    if settings.GROQ_API_KEY:
+        providers.append(f"Groq (model={settings.GROQ_DEFAULT_MODEL})")
     else:
-        logger.info("Groq API key detected. Model set to %s", settings.GROQ_DEFAULT_MODEL)
+        logger.info("GROQ_API_KEY not set — Groq provider disabled.")
+
+    if settings.GEMINI_API_KEY:
+        providers.append(f"Gemini (model={settings.GEMINI_DEFAULT_MODEL})")
+    else:
+        logger.info("GEMINI_API_KEY not set — Gemini fallback disabled.")
+
+    if providers:
+        logger.info("AI provider chain: %s", " → ".join(providers))
+    else:
+        logger.warning(
+            "No AI provider configured! Set GROQ_API_KEY and/or GEMINI_API_KEY. "
+            "Image analysis will fail."
+        )
 
     yield  # ← application runs here
 

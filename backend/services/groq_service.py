@@ -54,21 +54,28 @@ class GroqService:
                     response = await client.post(url, headers=headers, json=json_body)
                     response.raise_for_status()
                     return response.json()
-            except (httpx.HTTPStatusError, httpx.RequestError, httpx.TimeoutException) as exc:
-                err_detail = str(exc)
-                if isinstance(exc, httpx.HTTPStatusError):
-                    err_detail += f" | Response: {exc.response.text}"
+            except httpx.HTTPStatusError as exc:
+                err_detail = f"HTTP {exc.response.status_code}: {exc.response.text[:500]}"
                 last_exc = Exception(err_detail)
-                
+                logger.warning(
+                    "Groq attempt %d/%d — HTTP %d: %s",
+                    attempt, self.MAX_RETRIES, exc.response.status_code,
+                    exc.response.text[:200],
+                )
                 if attempt < self.MAX_RETRIES:
                     wait = self.BACKOFF_BASE ** attempt
-                    logger.warning(
-                        "Groq request attempt %d/%d failed: %s – retrying in %.1fs",
-                        attempt, self.MAX_RETRIES, exc, wait,
-                    )
+                    await asyncio.sleep(wait)
+            except Exception as exc:
+                last_exc = exc
+                logger.warning(
+                    "Groq attempt %d/%d — %s: %s",
+                    attempt, self.MAX_RETRIES, type(exc).__name__, exc,
+                )
+                if attempt < self.MAX_RETRIES:
+                    wait = self.BACKOFF_BASE ** attempt
                     await asyncio.sleep(wait)
 
-        logger.error("Groq request failed after %d retries.", self.MAX_RETRIES)
+        logger.error("Groq request failed after %d retries. Last error: %s", self.MAX_RETRIES, last_exc)
         raise RuntimeError(
             f"Groq request failed after {self.MAX_RETRIES} retries: {last_exc}"
         )
@@ -122,7 +129,7 @@ class GroqService:
                 }
             ],
             "temperature": 0.4,
-            "max_tokens": 4096,
+            "max_tokens": 2048,
             "response_format": {"type": "json_object"}
         }
 

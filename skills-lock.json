@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "skills": {
+    "agent-platform-deploy": {
+      "source": "google/skills",
+      "sourceType": "github",
+      "skillPath": "skills/cloud/agent-platform-deploy/SKILL.md",
+      "computedHash": "0d10be9da7ac2f87756aac4d69fb052d94d12df531bf371df4391d7e98dfad33"
+    },
+    "agent-platform-prompt-management": {
+      "source": "google/skills",
+      "sourceType": "github",
+      "skillPath": "skills/cloud/agent-platform-prompt-management/SKILL.md",
+      "computedHash": "9faa6d7b901655ade0eca6dcee20f32431f52dd06b4427abc3d66d40546dbc1c"
+    },
+    "agent-platform-skill-registry": {
+      "source": "google/skills",
+      "sourceType": "github",
+      "skillPath": "skills/cloud/agent-platform-skill-registry/SKILL.md",
+      "computedHash": "de229d00a9578fe54da917d4dc93547a3456333eda4b3e69b2231a2bb4a1ff76"
+    },
+    "agent-platform-tuning": {
+      "source": "google/skills",
+      "sourceType": "github",
+      "skillPath": "skills/cloud/agent-platform-tuning/SKILL.md",
+      "computedHash": "8d58d327c36dfa6002611977145c7f98c868dd80a2f5e22c71facf4e25ba758e"
+    },
+    "agent-platform-tuning-management": {
+      "source": "google/skills",
+      "sourceType": "github",
+      "skillPath": "skills/cloud/agent-platform-tuning-management/SKILL.md",
+      "computedHash": "0cf859127a60a6673dd3e541f297dcee9d391928c11aac3241a5cabf7520dfd9"
+    },
+    "cloud-run-basics": {
+      "source": "google/skills",
+      "sourceType": "github",
+      "skillPath": "skills/cloud/cloud-run-basics/SKILL.md",
+      "computedHash": "e51d5a27e6836c7bad5254a8e0289bd479d69eaa8c3518925260ea582bd94a2b"
+    },
+    "firebase-basics": {
+      "source": "google/skills",
+      "sourceType": "github",
+      "skillPath": "skills/cloud/firebase-basics/SKILL.md",
+      "computedHash": "c545713c52f98a4d73958a476ce43281d4b14e1f457b4a82f16dea71cdf38d8a"
+    }
+  }
+}

@@ -27,9 +27,13 @@ class Settings(BaseSettings):
     # ── Redis ─────────────────────────────────────────────────────────────
     REDIS_URL: str = "redis://localhost:6379/0"
 
-    # ── Groq (LLM) ─────────────────────────────────────────────────────
+    # ── Groq (LLM – primary) ──────────────────────────────────────────
     GROQ_API_KEY: str = ""
     GROQ_DEFAULT_MODEL: str = "qwen/qwen3.6-27b"
+
+    # ── Gemini (LLM – fallback) ───────────────────────────────────────
+    GEMINI_API_KEY: str = ""
+    GEMINI_DEFAULT_MODEL: str = "gemini-2.0-flash"
 
     # ── Firebase Auth ─────────────────────────────────────────────────────
     FIREBASE_CREDENTIALS_PATH: str = "./firebase-service-account.json"
