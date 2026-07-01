@@ -83,7 +83,7 @@ class SceneAnalyzer:
         # 2. Read, compress, and encode to base64
         image_bytes = path.read_bytes()
         
-        # Groq's Vision API has a strict 4MB base64 limit. We must resize/compress.
+        # Vision APIs have a strict base64 payload limit. Resize/compress first.
         import io
         from PIL import Image
         
@@ -106,7 +106,7 @@ class SceneAnalyzer:
 
         image_b64 = base64.b64encode(image_bytes).decode("utf-8")
 
-        # 3. Send to AI provider (Groq → Gemini fallback)
+        # 3. Send to AI provider (NVIDIA NIM → optional Gemini fallback)
         logger.info("Sending image %s for AI analysis (model=%s)", path.name, model or "default")
         response = await self.ai_client.analyze_image(
             image_base64=image_b64,

@@ -1,7 +1,7 @@
 """
 Multi-provider AI chain with automatic fallback and rate limiting.
 
-Provider priority:  Groq (fastest) → Gemini (generous free tier).
+Provider priority:  NVIDIA NIM (primary) → Gemini (optional fallback).
 If the primary is rate-limited or errors out, the next provider is tried
 transparently — the caller never knows the difference.
 """
@@ -10,7 +10,7 @@ import logging
 from typing import Any, Dict, List, Optional, Tuple
 
 from config import get_settings
-from services.groq_service import GroqService
+from services.nim_service import NimService
 from services.gemini_service import GeminiService
 from services.rate_limiter import RateLimiter
 
@@ -36,18 +36,22 @@ class AIProvider:
         self._providers: List[_ProviderEntry] = []
 
         # Build provider chain in priority order
-        if settings.GROQ_API_KEY:
-            self._providers.append(("groq", GroqService()))
-            logger.info("AI provider chain: Groq registered (primary)")
+        nim_api_key = settings.NVIDIA_NIM_API_KEY or settings.GROQ_API_KEY
+        if nim_api_key:
+            self._providers.append(("nim", NimService()))
+            model = settings.NVIDIA_NIM_DEFAULT_MODEL or settings.GROQ_DEFAULT_MODEL
+            logger.info("AI provider chain: NVIDIA NIM registered (primary, model=%s)", model)
 
-        if settings.GEMINI_API_KEY:
+        if settings.GEMINI_ENABLED and settings.GEMINI_API_KEY:
             self._providers.append(("gemini", GeminiService()))
             logger.info("AI provider chain: Gemini registered (fallback)")
+        elif settings.GEMINI_API_KEY and not settings.GEMINI_ENABLED:
+            logger.info("GEMINI_API_KEY is set but GEMINI_ENABLED=false — Gemini skipped.")
 
         if not self._providers:
             raise ValueError(
                 "No AI provider configured. "
-                "Set at least one of GROQ_API_KEY or GEMINI_API_KEY."
+                "Set NVIDIA_NIM_API_KEY (or GROQ_API_KEY) and/or enable GEMINI_ENABLED."
             )
 
         self._rate_limiter = RateLimiter()
@@ -83,7 +87,7 @@ class AIProvider:
             try:
                 await self._rate_limiter.record_request(provider_name)
 
-                # Don't pass Groq-specific model names to Gemini
+                # Don't pass NIM-specific model names to Gemini
                 provider_model = model
                 if provider_name == "gemini" and model and "/" in model:
                     provider_model = None  # use Gemini's own default

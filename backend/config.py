@@ -27,11 +27,17 @@ class Settings(BaseSettings):
     # ── Redis ─────────────────────────────────────────────────────────────
     REDIS_URL: str = "redis://localhost:6379/0"
 
-    # ── Groq (LLM – primary) ──────────────────────────────────────────
-    GROQ_API_KEY: str = ""
-    GROQ_DEFAULT_MODEL: str = "qwen/qwen3.6-27b"
+    # ── NVIDIA NIM (LLM – primary) ────────────────────────────────────
+    NVIDIA_NIM_API_KEY: str = ""
+    NVIDIA_NIM_DEFAULT_MODEL: str = "meta/llama-3.2-11b-vision-instruct"
+    NVIDIA_NIM_API_URL: str = "https://integrate.api.nvidia.com/v1/chat/completions"
 
-    # ── Gemini (LLM – fallback) ───────────────────────────────────────
+    # Legacy env names kept for backward compatibility during migration
+    GROQ_API_KEY: str = ""
+    GROQ_DEFAULT_MODEL: str = "meta/llama-3.2-11b-vision-instruct"
+
+    # ── Gemini (LLM – fallback, disabled by default while testing NIM) ─
+    GEMINI_ENABLED: bool = False
     GEMINI_API_KEY: str = ""
     GEMINI_DEFAULT_MODEL: str = "gemini-2.0-flash"
 

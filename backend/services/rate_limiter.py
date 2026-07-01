@@ -32,7 +32,8 @@ class RateLimiter:
     # Requests-per-minute limits per provider (with a small buffer below
     # the actual provider limits so we never slam the wall).
     DEFAULT_LIMITS: Dict[str, int] = {
-        "groq": 28,    # Groq free tier = 30 RPM
+        "nim": 28,
+        "groq": 28,    # legacy provider name
         "gemini": 14,  # Gemini free tier = 15 RPM
     }
 

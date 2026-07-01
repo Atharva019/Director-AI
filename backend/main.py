@@ -63,13 +63,17 @@ async def lifespan(app: FastAPI):
 
     # 4. Verify AI provider configuration
     providers = []
-    if settings.GROQ_API_KEY:
-        providers.append(f"Groq (model={settings.GROQ_DEFAULT_MODEL})")
+    nim_api_key = settings.NVIDIA_NIM_API_KEY or settings.GROQ_API_KEY
+    if nim_api_key:
+        model = settings.NVIDIA_NIM_DEFAULT_MODEL or settings.GROQ_DEFAULT_MODEL
+        providers.append(f"NVIDIA NIM (model={model})")
     else:
-        logger.info("GROQ_API_KEY not set — Groq provider disabled.")
+        logger.info("NVIDIA NIM API key not set — primary provider disabled.")
 
-    if settings.GEMINI_API_KEY:
+    if settings.GEMINI_ENABLED and settings.GEMINI_API_KEY:
         providers.append(f"Gemini (model={settings.GEMINI_DEFAULT_MODEL})")
+    elif settings.GEMINI_API_KEY:
+        logger.info("GEMINI_ENABLED=false — Gemini fallback disabled.")
     else:
         logger.info("GEMINI_API_KEY not set — Gemini fallback disabled.")
 
@@ -77,7 +81,7 @@ async def lifespan(app: FastAPI):
         logger.info("AI provider chain: %s", " → ".join(providers))
     else:
         logger.warning(
-            "No AI provider configured! Set GROQ_API_KEY and/or GEMINI_API_KEY. "
+            "No AI provider configured! Set NVIDIA_NIM_API_KEY and/or enable GEMINI_ENABLED. "
             "Image analysis will fail."
         )
 

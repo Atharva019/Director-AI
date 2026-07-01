@@ -1,48 +1,48 @@
 import asyncio
 import httpx
 from config import get_settings
+from services.nim_service import _normalize_api_key
 
 async def test():
     settings = get_settings()
-    api_key = settings.GROQ_API_KEY
+    api_key = _normalize_api_key(
+        settings.NVIDIA_NIM_API_KEY or settings.GROQ_API_KEY
+    )
     if not api_key or "your_" in api_key:
         print("API key not set correctly.")
         return
 
-    # Tiny 1x1 transparent GIF in base64, but we'll say jpeg to match our code
     tiny_b64 = "R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-    
+    model = settings.NVIDIA_NIM_DEFAULT_MODEL or settings.GROQ_DEFAULT_MODEL
+
     body = {
-        "model": settings.GROQ_DEFAULT_MODEL,
+        "model": model,
         "messages": [
             {
                 "role": "user",
                 "content": [
-                    {
-                        "type": "text",
-                        "text": "What is this?"
-                    },
+                    {"type": "text", "text": "What is this?"},
                     {
                         "type": "image_url",
                         "image_url": {
                             "url": f"data:image/jpeg;base64,{tiny_b64}"
-                        }
-                    }
-                ]
+                        },
+                    },
+                ],
             }
         ],
-        "temperature": 0.4
+        "temperature": 0.4,
     }
 
-    url = "https://api.groq.com/openai/v1/chat/completions"
+    url = settings.NVIDIA_NIM_API_URL
     headers = {
         "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
     }
-    
-    async with httpx.AsyncClient() as client:
+
+    async with httpx.AsyncClient(timeout=60) as client:
         res = await client.post(url, headers=headers, json=body)
         print("Status:", res.status_code)
-        print("Body:", res.text)
+        print("Body:", res.text[:1000])
 
 asyncio.run(test())
