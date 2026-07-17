@@ -2,8 +2,8 @@
 Firebase Admin SDK initialisation and token verification.
 """
 
+import json
 import logging
-from pathlib import Path
 from typing import Any, Dict, Optional
 
 import firebase_admin
@@ -16,6 +16,15 @@ logger = logging.getLogger(__name__)
 _firebase_app: Optional[firebase_admin.App] = None
 
 
+def _load_credential():
+    """Prefer the JSON env var (production); fall back to the file path."""
+    settings = get_settings()
+    if settings.FIREBASE_SERVICE_ACCOUNT_JSON.strip():
+        info = json.loads(settings.FIREBASE_SERVICE_ACCOUNT_JSON)
+        return credentials.Certificate(info)
+    return credentials.Certificate(settings.FIREBASE_CREDENTIALS_PATH)
+
+
 def initialize_firebase() -> None:
     """
     Initialize the Firebase Admin SDK using the service-account JSON
@@ -26,20 +35,16 @@ def initialize_firebase() -> None:
     if _firebase_app is not None:
         return
 
-    settings = get_settings()
-    cred_path = Path(settings.FIREBASE_CREDENTIALS_PATH)
-
-    if cred_path.exists():
-        cred = credentials.Certificate(str(cred_path))
+    try:
+        cred = _load_credential()
         _firebase_app = firebase_admin.initialize_app(cred)
-        logger.info("Firebase Admin SDK initialized from %s", cred_path)
-    else:
+        logger.info("Firebase Admin SDK initialized from configured credential.")
+    except Exception:
         # In development / CI you may not have a credentials file.
         # Fall back to Application Default Credentials or skip.
         logger.warning(
-            "Firebase credentials file not found at %s – "
-            "auth verification will be unavailable.",
-            cred_path,
+            "Firebase credentials not found/invalid – "
+            "auth verification will be unavailable."
         )
         try:
             _firebase_app = firebase_admin.initialize_app()
