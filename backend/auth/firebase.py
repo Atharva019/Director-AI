@@ -4,6 +4,7 @@ Firebase Admin SDK initialisation and token verification.
 
 import json
 import logging
+import os
 from typing import Any, Dict, Optional
 
 import firebase_admin
@@ -35,17 +36,36 @@ def initialize_firebase() -> None:
     if _firebase_app is not None:
         return
 
+    settings = get_settings()
+    credential_configured = bool(settings.FIREBASE_SERVICE_ACCOUNT_JSON.strip()) or os.path.exists(
+        settings.FIREBASE_CREDENTIALS_PATH
+    )
+
     try:
         cred = _load_credential()
         _firebase_app = firebase_admin.initialize_app(cred)
         logger.info("Firebase Admin SDK initialized from configured credential.")
+        return
     except Exception:
-        # In development / CI you may not have a credentials file.
-        # Fall back to Application Default Credentials or skip.
-        logger.warning(
-            "Firebase credentials not found/invalid – "
-            "auth verification will be unavailable."
-        )
+        if credential_configured:
+            # A credential WAS configured but failed to load - this is a real
+            # misconfiguration (bad JSON, missing file, invalid cert, etc.),
+            # not the "no credential at all" dev case. Surface the real error.
+            logger.error(
+                "Firebase credential is configured but failed to load.",
+                exc_info=True,
+            )
+            if settings.is_production:
+                # Fail fast at startup rather than silently booting with
+                # auth disabled.
+                raise
+        else:
+            # In development / CI you may not have a credentials file.
+            # Fall back to Application Default Credentials or skip.
+            logger.warning(
+                "Firebase credentials not found/invalid – "
+                "auth verification will be unavailable."
+            )
         try:
             _firebase_app = firebase_admin.initialize_app()
             logger.info("Firebase Admin SDK initialized with default credentials.")
