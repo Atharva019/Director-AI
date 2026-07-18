@@ -1,0 +1,11 @@
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+uploads/
+tests/
+.env
+*.json.bak
+# Never bake service-account credentials into an image.
+firebase-service-account.json
+director-ai-*-firebase-adminsdk-*.json
