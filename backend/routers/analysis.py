@@ -18,6 +18,7 @@ from schemas.analysis import SceneAnalysisResponse
 from services.image_service import ImageService
 from services.scene_analyzer import SceneAnalyzer
 from services.project_service import ProjectService
+from services import quota_service
 
 router = APIRouter(tags=["Analysis"])
 
@@ -42,6 +43,10 @@ async def analyze_image(
     The image is validated, saved, then sent to the configured Ollama
     vision model.  The structured analysis result is persisted and returned.
     """
+    # 0. Check quota BEFORE spending an upload or an AI call the user isn't
+    #    entitled to.
+    await quota_service.enforce_analysis_quota(db, current_user)
+
     # 1. Save and validate the upload
     try:
         image_path = await _image_svc.save_upload(file)

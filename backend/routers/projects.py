@@ -12,6 +12,7 @@ from auth.middleware import get_current_user
 from db.database import get_db
 from models.user import User
 from schemas.project import ProjectCreate, ProjectUpdate, ProjectResponse
+from services import quota_service
 from services.project_service import ProjectService
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
@@ -25,6 +26,7 @@ async def create_project(
     db: AsyncSession = Depends(get_db),
 ) -> ProjectResponse:
     """Create a new filmmaking project."""
+    await quota_service.enforce_project_quota(db, current_user)
     project = await _svc.create_project(
         db,
         current_user,
