@@ -25,6 +25,7 @@ from routers import (
     scenes_router,
     shots_router,
     analysis_router,
+    waitlist_router,
 )
 
 
@@ -119,6 +120,7 @@ app.include_router(projects_router, prefix=API_V1)
 app.include_router(scenes_router, prefix=API_V1)
 app.include_router(shots_router, prefix=API_V1)
 app.include_router(analysis_router, prefix=API_V1)
+app.include_router(waitlist_router, prefix=API_V1)
 
 
 # ── Health check ──────────────────────────────────────────────────────────────
