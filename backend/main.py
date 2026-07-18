@@ -7,12 +7,10 @@ Run with:
 
 import logging
 from contextlib import asynccontextmanager
-from pathlib import Path
 
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from fastapi.staticfiles import StaticFiles
 
 from config import get_settings
 from db.database import Base, async_engine
@@ -58,12 +56,7 @@ async def lifespan(app: FastAPI):
     # 2. Initialize Firebase Admin SDK
     initialize_firebase()
 
-    # 3. Create upload directory
-    upload_dir = Path(settings.UPLOAD_DIR)
-    upload_dir.mkdir(parents=True, exist_ok=True)
-    logger.info("Upload directory ready: %s", upload_dir.resolve())
-
-    # 4. Verify AI provider configuration
+    # 3. Verify AI provider configuration
     providers = []
     nim_api_key = settings.NVIDIA_NIM_API_KEY or settings.GROQ_API_KEY
     if nim_api_key:
@@ -114,7 +107,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
+# Uploaded images are served straight from Cloudflare R2, not from this app —
+# free-tier hosts have an ephemeral disk, so there is nothing local to mount.
 
 # ── Routers (all under /api/v1) ──────────────────────────────────────────────
 
