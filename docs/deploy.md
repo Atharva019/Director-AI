@@ -23,6 +23,11 @@ Render free (API) + Vercel (frontend). No Redis, no billing, no job queue.
 
 4. Keep it for `DATABASE_URL` in step 3.
 
+Neon's string usually ends in `?sslmode=require&channel_binding=require`. Leave
+those on — the app strips libpq-only parameters before handing the URL to
+asyncpg (which rejects them) while Alembic keeps them for psycopg2 (which needs
+them). You do not need to hand-edit the query string.
+
 Schema is created by `alembic upgrade head`, which the container runs at boot —
 no manual migration step.
 
@@ -153,7 +158,10 @@ after the colon is the **commit message, not the error** — ignore it. Open
 | `Object storage is not fully configured` | one of the four required `S3_*` vars missing | Set `S3_ENDPOINT_URL`, `S3_ACCESS_KEY_ID`, `S3_BUCKET`, `S3_PUBLIC_BASE_URL` |
 | `No AI provider configured` | no `NVIDIA_NIM_API_KEY` and Gemini disabled | Set `NVIDIA_NIM_API_KEY` |
 | `Firebase credential is configured but failed to load` | malformed `FIREBASE_SERVICE_ACCOUNT_JSON` | Re-paste the whole JSON on one line, no stray newlines |
-| `alembic ... connection refused` / auth failed | bad `DATABASE_URL` | Check the Neon string and that it uses `+asyncpg` |
+| `DATABASE_URL is not configured` | `DATABASE_URL` unset — the default points at localhost | Set the Neon string with `+asyncpg` |
+| `connection to server at "localhost" ... refused` | same, on an older build predating the guard | Set `DATABASE_URL` |
+| `connect() got an unexpected keyword argument 'sslmode'` | older build; asyncpg got a libpq param | Fixed in current `main` — redeploy |
+| `alembic ... auth failed` | wrong credentials in `DATABASE_URL` | Re-copy the Neon string |
 
 **Upgrading from an older config:** the storage variables were renamed from
 `R2_*` to `S3_*`. If your Render service still has `R2_ACCOUNT_ID` etc., those

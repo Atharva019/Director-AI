@@ -92,6 +92,12 @@ class Settings(BaseSettings):
         return self.APP_ENV == "production"
 
     @property
+    def database_configured(self) -> bool:
+        """False while DATABASE_URL is still pointing at a local dev database."""
+        url = self.DATABASE_URL
+        return not ("localhost" in url or "127.0.0.1" in url)
+
+    @property
     def storage_enabled(self) -> bool:
         """Storage is only usable if we can also build a public URL for the object.
 
@@ -103,6 +109,24 @@ class Settings(BaseSettings):
             and self.S3_ACCESS_KEY_ID
             and self.S3_BUCKET
             and self.S3_PUBLIC_BASE_URL
+        )
+
+
+def verify_database_config(cfg: Settings) -> None:
+    """Refuse to run against the local dev database default in production.
+
+    Lives here rather than in main.py because Alembic hits the database first
+    (the container runs `alembic upgrade head` before uvicorn), so the check
+    has to be reachable from migrations/env.py too. Without it, an unset
+    DATABASE_URL silently falls back to localhost and surfaces as a raw
+    psycopg2 "connection refused" traceback, which reads like a broken image
+    rather than a missing environment variable.
+    """
+    if cfg.is_production and not cfg.database_configured:
+        raise RuntimeError(
+            "DATABASE_URL is not configured (still pointing at localhost). "
+            "Set it to your Neon connection string using the asyncpg driver, "
+            "e.g. postgresql+asyncpg://user:pw@ep-xxx.neon.tech/dbname"
         )
 
 

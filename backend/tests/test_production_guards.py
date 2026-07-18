@@ -104,3 +104,91 @@ def test_create_all_disabled_in_production():
 
     assert should_create_all(Settings(APP_ENV="production")) is False
     assert should_create_all(Settings(APP_ENV="development")) is True
+
+
+# ── Database URL handling ────────────────────────────────────────────────────
+
+
+def test_database_configured_detects_local_default():
+    assert Settings().database_configured is False
+    assert Settings(DATABASE_URL="postgresql+asyncpg://u:p@127.0.0.1/db").database_configured is False
+    assert Settings(
+        DATABASE_URL="postgresql+asyncpg://u:p@ep-x.neon.tech/db"
+    ).database_configured is True
+
+
+def test_production_startup_rejects_unset_database_url():
+    """An unset DATABASE_URL otherwise surfaces as a psycopg2 traceback."""
+    from config import verify_database_config
+
+    with pytest.raises(RuntimeError, match="DATABASE_URL"):
+        verify_database_config(Settings(APP_ENV="production"))
+
+
+def test_development_tolerates_local_database_url():
+    from config import verify_database_config
+
+    verify_database_config(Settings(APP_ENV="development"))  # no raise
+
+
+def test_neon_sslmode_is_stripped_for_asyncpg():
+    """psycopg2 accepts ?sslmode=require; asyncpg raises TypeError on it."""
+    from db.database import prepare_asyncpg_url
+
+    url, args = prepare_asyncpg_url(
+        "postgresql+asyncpg://u:p@ep-x.neon.tech/db"
+        "?sslmode=require&channel_binding=require"
+    )
+    assert "sslmode" not in url
+    assert "channel_binding" not in url
+    assert args == {"ssl": True}
+
+
+def test_sslmode_disable_does_not_force_tls():
+    from db.database import prepare_asyncpg_url
+
+    _, args = prepare_asyncpg_url("postgresql+asyncpg://u:p@h/db?sslmode=disable")
+    assert args == {}
+
+
+def test_application_name_moves_to_server_settings():
+    """asyncpg rejects application_name as a kwarg; it belongs in
+    server_settings. Verified against a live connection, not just in theory."""
+    from db.database import prepare_asyncpg_url
+
+    url, args = prepare_asyncpg_url(
+        "postgresql+asyncpg://u:p@h/db?sslmode=require&application_name=director"
+    )
+    assert "application_name" not in url
+    assert args["server_settings"] == {"application_name": "director"}
+    assert args["ssl"] is True
+
+
+def test_unknown_libpq_params_are_dropped_not_forwarded():
+    """Forwarding an unrecognised param crashes asyncpg at connect time, which
+    on Render reads as a failed deploy. Dropping degrades gracefully instead."""
+    from db.database import prepare_asyncpg_url
+
+    url, args = prepare_asyncpg_url(
+        "postgresql+asyncpg://u:p@h/db"
+        "?target_session_attrs=read-write&sslrootcert=/etc/ca.pem&options=-c%20geqo%3Doff"
+    )
+    assert "?" not in url
+    assert args == {}
+
+
+def test_connect_timeout_is_translated():
+    from db.database import prepare_asyncpg_url
+
+    _, args = prepare_asyncpg_url("postgresql+asyncpg://u:p@h/db?connect_timeout=15")
+    assert args == {"timeout": 15.0}
+
+
+def test_sync_psycopg2_url_is_left_alone():
+    """Alembic's URL keeps sslmode — psycopg2 needs it."""
+    from db.database import prepare_asyncpg_url
+
+    original = "postgresql://u:p@ep-x.neon.tech/db?sslmode=require"
+    url, args = prepare_asyncpg_url(original)
+    assert url == original
+    assert args == {}
