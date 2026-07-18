@@ -41,9 +41,19 @@ async def client(db_session, test_user):
     async def override_get_db():
         yield db_session
 
+    persisted = False
+
     async def override_get_current_user():
-        db_session.add(test_user)
-        await db_session.commit()
+        # Persist on the first call only. Re-adding an already-persistent user
+        # cascades into its relationships, and after a request that deleted one
+        # of its projects that cascade tries to resurrect a deleted instance.
+        nonlocal persisted
+        if not persisted:
+            db_session.add(test_user)
+            await db_session.commit()
+            persisted = True
+        # Refresh every call: a preceding commit in the test body expires the
+        # instance, and the route reads user.plan for the quota check.
         await db_session.refresh(test_user)
         return test_user
 
