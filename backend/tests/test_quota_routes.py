@@ -29,3 +29,13 @@ async def test_create_project_over_limit_returns_402(client, db_session, test_us
     assert body["resource"] == "project"
     assert body["limit"] == 2
     assert body["used"] == 2
+
+
+@pytest.mark.asyncio
+async def test_usage_endpoint_reports_plan_and_counts(client):
+    res = await client.get("/api/v1/auth/usage")
+    assert res.status_code == 200
+    body = res.json()
+    assert body["plan"] == "free"
+    assert body["analyses"] == {"used": 0, "limit": 5}
+    assert body["projects"] == {"used": 0, "limit": 2}

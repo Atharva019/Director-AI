@@ -9,6 +9,7 @@ from auth.middleware import get_current_user
 from db.database import get_db
 from models.user import User
 from schemas.user import UserResponse
+from services import quota_service
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -34,3 +35,16 @@ async def get_me(
 ) -> User:
     """Return the currently authenticated user's profile."""
     return current_user
+
+
+@router.get("/usage")
+async def get_usage(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Current plan and quota consumption, for the frontend usage meter.
+
+    Display only — the limits that actually matter are enforced server-side in
+    quota_service, never here.
+    """
+    return await quota_service.usage_summary(db, current_user)

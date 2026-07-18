@@ -81,9 +81,45 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
   };
 }
 
+/** Free-tier limit hit. The backend answers 402 with a structured detail. */
+export class QuotaError extends Error {
+  readonly resource: "analysis" | "project";
+  readonly limit: number;
+  readonly used: number;
+
+  constructor(detail: {
+    resource: "analysis" | "project";
+    limit: number;
+    used: number;
+    message: string;
+  }) {
+    super(detail.message);
+    this.name = "QuotaError";
+    this.resource = detail.resource;
+    this.limit = detail.limit;
+    this.used = detail.used;
+  }
+}
+
+export function isQuotaError(err: unknown): err is QuotaError {
+  return err instanceof QuotaError;
+}
+
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
     const body = await res.json().catch(() => ({ detail: res.statusText }));
+
+    // Quota exhaustion is the one error the UI acts on rather than just
+    // displays — surface it as its own type so callers can open the upgrade
+    // prompt instead of string-matching a message.
+    if (
+      res.status === 402 &&
+      body.detail &&
+      typeof body.detail === "object" &&
+      body.detail.error === "quota_exceeded"
+    ) {
+      throw new QuotaError(body.detail);
+    }
 
     // FastAPI validation errors return detail as an array of objects:
     // [{loc: ["body", "field"], msg: "...", type: "..."}, ...]
