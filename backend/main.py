@@ -55,17 +55,19 @@ def should_create_all(cfg) -> bool:
 
 
 def verify_storage_config(cfg) -> None:
-    """Refuse to start in production without a complete R2 configuration.
+    """Refuse to start in production without complete object-storage settings.
 
     Without this the uploader falls back to an empty public base URL and
     persists relative paths like `/analyses/abc.png` into scene_analyses —
-    unrecoverable once written, because the object key is all we keep.
+    unrecoverable once written, because the object key is all we keep. An empty
+    endpoint would additionally send uploads to real AWS S3.
     """
-    if cfg.is_production and not cfg.r2_enabled:
+    if cfg.is_production and not cfg.storage_enabled:
         raise RuntimeError(
-            "R2 storage is not fully configured (need R2_ACCOUNT_ID, "
-            "R2_ACCESS_KEY_ID, R2_BUCKET, R2_PUBLIC_BASE_URL). Refusing to "
-            "start: uploads would be persisted as unusable relative paths."
+            "Object storage is not fully configured (need S3_ENDPOINT_URL, "
+            "S3_ACCESS_KEY_ID, S3_BUCKET, S3_PUBLIC_BASE_URL). Refusing to "
+            "start: uploads would be persisted as unusable relative paths. "
+            "See docs/deploy.md for per-provider values."
         )
 
 

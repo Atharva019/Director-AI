@@ -47,12 +47,16 @@ class Settings(BaseSettings):
     # takes precedence over FIREBASE_CREDENTIALS_PATH.
     FIREBASE_SERVICE_ACCOUNT_JSON: str = ""
 
-    # ── Cloudflare R2 (S3-compatible object storage) ──────────────────────
-    R2_ACCOUNT_ID: str = ""
-    R2_ACCESS_KEY_ID: str = ""
-    R2_SECRET_ACCESS_KEY: str = ""
-    R2_BUCKET: str = ""
-    R2_PUBLIC_BASE_URL: str = ""  # e.g. https://pub-xxxx.r2.dev or a custom domain
+    # ── Object storage (any S3-compatible provider) ───────────────────────
+    # Works with Cloudflare R2, Supabase Storage, Backblaze B2, MinIO, AWS S3 —
+    # only the endpoint and region differ. See docs/deploy.md for per-provider
+    # values.
+    S3_ENDPOINT_URL: str = ""    # e.g. https://<account>.r2.cloudflarestorage.com
+    S3_ACCESS_KEY_ID: str = ""
+    S3_SECRET_ACCESS_KEY: str = ""
+    S3_BUCKET: str = ""
+    S3_PUBLIC_BASE_URL: str = ""  # public base for reads, e.g. https://pub-x.r2.dev
+    S3_REGION: str = "auto"       # R2 uses "auto"; B2/Supabase want a real region
 
     # ── Plan limits ───────────────────────────────────────────────────────
     plan_free_analyses: int = 5
@@ -88,17 +92,17 @@ class Settings(BaseSettings):
         return self.APP_ENV == "production"
 
     @property
-    def r2_enabled(self) -> bool:
-        """R2 is only usable if we can also build a public URL for the object.
+    def storage_enabled(self) -> bool:
+        """Storage is only usable if we can also build a public URL for the object.
 
-        R2_PUBLIC_BASE_URL is part of the requirement: without it, uploads
+        S3_PUBLIC_BASE_URL is part of the requirement: without it, uploads
         return a relative path that gets persisted to the database forever.
         """
         return bool(
-            self.R2_ACCOUNT_ID
-            and self.R2_ACCESS_KEY_ID
-            and self.R2_BUCKET
-            and self.R2_PUBLIC_BASE_URL
+            self.S3_ENDPOINT_URL
+            and self.S3_ACCESS_KEY_ID
+            and self.S3_BUCKET
+            and self.S3_PUBLIC_BASE_URL
         )
 
 

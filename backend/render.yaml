@@ -23,15 +23,18 @@ services:
         sync: false
       - key: FIREBASE_SERVICE_ACCOUNT_JSON
         sync: false
-      - key: R2_ACCOUNT_ID
+      # Object storage — any S3-compatible provider (R2 / Supabase / B2).
+      - key: S3_ENDPOINT_URL
         sync: false
-      - key: R2_ACCESS_KEY_ID
+      - key: S3_ACCESS_KEY_ID
         sync: false
-      - key: R2_SECRET_ACCESS_KEY
+      - key: S3_SECRET_ACCESS_KEY
         sync: false
-      - key: R2_BUCKET
+      - key: S3_BUCKET
         sync: false
-      - key: R2_PUBLIC_BASE_URL
+      - key: S3_PUBLIC_BASE_URL
+        sync: false
+      - key: S3_REGION
         sync: false
       - key: CORS_ORIGINS
         sync: false
