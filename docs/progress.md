@@ -2,15 +2,15 @@
 
 Single source of truth for where the production push stands. Update as tasks complete.
 
-**Current phase**: Phase 1 — code complete, ready to deploy
-**Live URL**: — (not yet deployed)
+**Current phase**: Phase 1 — backend **deployed on Render**, boots clean against Neon
+**Live URL**: backend up; frontend + smoke test still outstanding
 **Waitlist count**: 0 (Phase 3 gate: 25)
 
 ## Phase status
 
 | Phase | Status | Notes |
 |---|---|---|
-| Phase 1 — Launch (`phases/phase-1-launch.md`) | 🟨 Code complete | Needs Neon + R2 provisioning, then deploy |
+| Phase 1 — Launch (`phases/phase-1-launch.md`) | 🟨 Backend live | Frontend deploy + smoke test remain |
 | Phase 2 — Funnel (`phases/phase-2-funnel.md`) | ⬜ Blocked on Phase 1 | |
 | Phase 3 — Monetize (`phases/phase-3-monetize.md`) | 🔒 Gated | Needs waitlist signal |
 
@@ -18,18 +18,26 @@ Single source of truth for where the production push stands. Update as tasks com
 
 - [x] 1. Security P0 — resolved: secrets verified **never committed** and gitignored (see `security.md`)
 - [x] 1b. Auth/IDOR audit — ownership regression tests in `tests/test_ownership.py`
-- [x] 2. Storage on Cloudflare R2 — `services/storage_service.py`, local `/uploads` mount removed
-- [x] 3. Alembic migrations — baseline + schema additions, verified on a fresh DB
+- [x] 2. Storage on any S3-compatible provider — `services/storage_service.py`, local `/uploads` mount removed
+- [x] 3. Alembic migrations — baseline + schema additions, applied to Neon at boot
 - [x] 4. Quotas (5 analyses/mo, 2 projects) + waitlist endpoint + upgrade UI
-- [x] 5. Deploy config written and container-verified; **live deploy pending rotation**
+- [x] 5a. Backend deployed on Render, migrations applied, `/health` green
+- [ ] 5b. Frontend deployed on Vercel
+- [ ] 5c. 10-step smoke test in `docs/deploy.md` passed against production
 
 ### Outstanding before launch
 
-1. Provision Neon (Postgres) and Cloudflare R2 — both free tier.
-2. Follow `docs/deploy.md`: Render blueprint, Vercel import, Firebase authorized
-   domain, `CORS_ORIGINS`.
-3. Run the 10-step smoke test in `docs/deploy.md`.
-4. Optional: rotate the AI provider keys if they've ever left this machine.
+1. Deploy the frontend on Vercel (step 4 of `docs/deploy.md`).
+2. Firebase console → Authentication → Authorized domains → add the Vercel
+   domain. **Login fails silently without this** — no error, just no session.
+3. Set Render's `CORS_ORIGINS` to the real Vercel origin if it differs from the
+   value guessed at deploy time.
+4. Run the 10-step smoke test.
+
+> **Startup guards check presence, not validity.** The boot succeeding proves
+> `S3_*` and `FIREBASE_SERVICE_ACCOUNT_JSON` are *set*, not that the credentials
+> work — a placeholder passes the guard and then fails on first upload or first
+> login. Smoke steps 2 and 6 are what actually exercise them.
 
 ## Phase 2 checklist
 
