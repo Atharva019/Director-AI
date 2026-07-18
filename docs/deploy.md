@@ -3,11 +3,11 @@
 Target: **$0/mo**. Neon (Postgres) + Cloudflare R2 (images) + Render free (API) +
 Vercel (frontend). No Redis, no billing, no job queue.
 
-> **Blocker — do this first.** The repo still tracks live credentials
-> (`backend/firebase-service-account.json`, `backend/director-ai-*-firebase-adminsdk-*.json`,
-> `backend/.env`, root `.env`, `frontend/.env.local`). Rotate every one of those
-> keys in its console, then `git rm --cached` the files, before anything is
-> deployed. See `docs/security.md`. Nothing below is safe until that is done.
+> **Credentials check.** The local secret files (`backend/.env`,
+> `backend/firebase-service-account.json`, etc.) were verified as **never
+> committed** and are covered by `.gitignore` — no history surgery needed. See
+> `docs/security.md`. Rotating the AI provider keys before launch is still
+> sensible if they've ever left your machine.
 
 ---
 

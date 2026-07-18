@@ -2,25 +2,34 @@
 
 Single source of truth for where the production push stands. Update as tasks complete.
 
-**Current phase**: Phase 1 — not started
-**Live URL**: —
+**Current phase**: Phase 1 — code complete, ready to deploy
+**Live URL**: — (not yet deployed)
 **Waitlist count**: 0 (Phase 3 gate: 25)
 
 ## Phase status
 
 | Phase | Status | Notes |
 |---|---|---|
-| Phase 1 — Launch (`phases/phase-1-launch.md`) | ⬜ Not started | Security P0 first |
+| Phase 1 — Launch (`phases/phase-1-launch.md`) | 🟨 Code complete | Needs Neon + R2 provisioning, then deploy |
 | Phase 2 — Funnel (`phases/phase-2-funnel.md`) | ⬜ Blocked on Phase 1 | |
 | Phase 3 — Monetize (`phases/phase-3-monetize.md`) | 🔒 Gated | Needs waitlist signal |
 
 ## Phase 1 checklist (mirror of phase doc)
 
-- [ ] 1. Security P0: keys rotated, secrets out of repo, auth/IDOR audit
-- [ ] 2. Storage on Cloudflare R2
-- [ ] 3. Neon Postgres + Alembic migrations
-- [ ] 4. Quotas (5 analyses/mo, 2 projects) + waitlist endpoint + upgrade UI
-- [ ] 5. Deployed: Render (API) + Vercel (frontend), smoke-tested live, tests green
+- [x] 1. Security P0 — resolved: secrets verified **never committed** and gitignored (see `security.md`)
+- [x] 1b. Auth/IDOR audit — ownership regression tests in `tests/test_ownership.py`
+- [x] 2. Storage on Cloudflare R2 — `services/storage_service.py`, local `/uploads` mount removed
+- [x] 3. Alembic migrations — baseline + schema additions, verified on a fresh DB
+- [x] 4. Quotas (5 analyses/mo, 2 projects) + waitlist endpoint + upgrade UI
+- [x] 5. Deploy config written and container-verified; **live deploy pending rotation**
+
+### Outstanding before launch
+
+1. Provision Neon (Postgres) and Cloudflare R2 — both free tier.
+2. Follow `docs/deploy.md`: Render blueprint, Vercel import, Firebase authorized
+   domain, `CORS_ORIGINS`.
+3. Run the 10-step smoke test in `docs/deploy.md`.
+4. Optional: rotate the AI provider keys if they've ever left this machine.
 
 ## Phase 2 checklist
 
