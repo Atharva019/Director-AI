@@ -16,6 +16,34 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 
 
+def normalize_pg_scheme(url: str, driver: str = "") -> str:
+    """Force a Postgres URL onto a specific SQLAlchemy driver.
+
+    Providers hand out `postgresql://…` (Neon, Supabase) or the legacy
+    `postgres://…` (Heroku), which SQLAlchemy does not accept at all. Requiring
+    a human to hand-edit the scheme is a footgun: forget it and you get
+    "The asyncio extension requires an async driver to be used", which names
+    neither the variable nor the fix. The app knows which driver it needs, so
+    it rewrites the scheme itself.
+
+    driver="asyncpg" -> postgresql+asyncpg://…   (the app's async engine)
+    driver=""        -> postgresql://…           (Alembic, sync psycopg2)
+    """
+    parts = urlsplit(url)
+    if not parts.scheme.startswith(("postgres", "postgresql")):
+        return url  # not Postgres — leave it alone (e.g. sqlite in tests)
+
+    scheme = f"postgresql+{driver}" if driver else "postgresql"
+    return urlunsplit(
+        (scheme, parts.netloc, parts.path, parts.query, parts.fragment)
+    )
+
+
+def prepare_sync_url(url: str) -> str:
+    """Alembic's URL: sync psycopg2, libpq query params left intact."""
+    return normalize_pg_scheme(url, driver="")
+
+
 def prepare_asyncpg_url(url: str) -> Tuple[str, Dict]:
     """Make a libpq-style connection string safe for asyncpg.
 
@@ -32,9 +60,11 @@ def prepare_asyncpg_url(url: str) -> Tuple[str, Dict]:
     crash the boot. Dropping is the right trade here: these are tuning hints,
     and a failed deploy is far more costly than an unapplied one.
     """
-    if "+asyncpg" not in url:
-        return url, {}
+    parts = urlsplit(url)
+    if not parts.scheme.startswith(("postgres", "postgresql")):
+        return url, {}  # sqlite and friends need none of this
 
+    url = normalize_pg_scheme(url, driver="asyncpg")
     parts = urlsplit(url)
     connect_args: Dict = {}
     server_settings: Dict[str, str] = {}

@@ -184,14 +184,49 @@ def test_connect_timeout_is_translated():
     assert args == {"timeout": 15.0}
 
 
-def test_sync_psycopg2_url_is_left_alone():
-    """Alembic's URL keeps sslmode — psycopg2 needs it."""
+def test_provider_scheme_is_normalized_to_asyncpg():
+    """Neon/Supabase hand out postgresql://, Heroku the legacy postgres://.
+
+    Requiring a hand-edit produced "The asyncio extension requires an async
+    driver" — an error naming neither the variable nor the fix. Whatever the
+    provider gives, the app engine must end up on asyncpg.
+    """
     from db.database import prepare_asyncpg_url
 
-    original = "postgresql://u:p@ep-x.neon.tech/db?sslmode=require"
-    url, args = prepare_asyncpg_url(original)
-    assert url == original
-    assert args == {}
+    for given in [
+        "postgresql://u:p@ep-x.neon.tech/db?sslmode=require",
+        "postgres://u:p@ep-x.neon.tech/db?sslmode=require",
+        "postgresql+asyncpg://u:p@ep-x.neon.tech/db?sslmode=require",
+        "postgresql+psycopg2://u:p@ep-x.neon.tech/db?sslmode=require",
+    ]:
+        url, args = prepare_asyncpg_url(given)
+        assert url.startswith("postgresql+asyncpg://"), given
+        assert "sslmode" not in url, given
+        assert args == {"ssl": True}, given
+
+
+def test_sync_url_normalizes_to_psycopg2_and_keeps_params():
+    """Alembic runs sync and psycopg2 needs sslmode kept."""
+    from db.database import prepare_sync_url
+
+    for given in [
+        "postgresql+asyncpg://u:p@ep-x.neon.tech/db?sslmode=require",
+        "postgres://u:p@ep-x.neon.tech/db?sslmode=require",
+        "postgresql://u:p@ep-x.neon.tech/db?sslmode=require",
+    ]:
+        url = prepare_sync_url(given)
+        assert url.startswith("postgresql://"), given
+        assert "+asyncpg" not in url, given
+        assert "sslmode=require" in url, given
+
+
+def test_non_postgres_urls_are_untouched():
+    """The SQLite test URL must survive both helpers unchanged."""
+    from db.database import prepare_asyncpg_url, prepare_sync_url
+
+    sqlite = "sqlite+aiosqlite:///:memory:"
+    assert prepare_asyncpg_url(sqlite) == (sqlite, {})
+    assert prepare_sync_url(sqlite) == sqlite
 
 
 def test_database_host_is_parsed_not_substring_matched():

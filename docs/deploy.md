@@ -13,20 +13,23 @@ Render free (API) + Vercel (frontend). No Redis, no billing, no job queue.
 
 ## 1. Database — Neon
 
-1. Create a project at [neon.tech](https://neon.tech) (free tier).
+1. Create a project at [neon.tech](https://neon.tech) (free tier, no card).
 2. Copy the **pooled** connection string.
-3. Swap the driver for asyncpg — the app is fully async:
+3. Use it verbatim as `DATABASE_URL` in step 3. **No editing required.**
 
-   ```
-   postgresql://user:pw@host/db      ->  postgresql+asyncpg://user:pw@host/db
-   ```
+The app normalises the connection string itself:
 
-4. Keep it for `DATABASE_URL` in step 3.
+- **Driver** — `postgresql://` and the legacy `postgres://` are both rewritten
+  to `postgresql+asyncpg://` for the app engine, and to `postgresql://`
+  (psycopg2) for Alembic. Getting this wrong by hand produced
+  `The asyncio extension requires an async driver to be used`, which names
+  neither the variable nor the fix.
+- **Query parameters** — `?sslmode=require&channel_binding=require` are kept
+  for psycopg2 (which needs them) and translated for asyncpg (which rejects
+  them outright).
 
-Neon's string usually ends in `?sslmode=require&channel_binding=require`. Leave
-those on — the app strips libpq-only parameters before handing the URL to
-asyncpg (which rejects them) while Alembic keeps them for psycopg2 (which needs
-them). You do not need to hand-edit the query string.
+Paste what the provider gives you. The same applies to Supabase, Heroku, or any
+other managed Postgres.
 
 Schema is created by `alembic upgrade head`, which the container runs at boot —
 no manual migration step.
@@ -160,7 +163,8 @@ after the colon is the **commit message, not the error** — ignore it. Open
 | `Firebase credential is configured but failed to load` | malformed `FIREBASE_SERVICE_ACCOUNT_JSON` | Re-paste the whole JSON on one line, no stray newlines |
 | `DATABASE_URL is not configured` | `DATABASE_URL` unset — the default points at localhost | Set the Neon string with `+asyncpg` |
 | `connection to server at "localhost" ... refused` | same, on an older build predating the guard | Set `DATABASE_URL` |
-| `connect() got an unexpected keyword argument 'sslmode'` | older build; asyncpg got a libpq param | Fixed in current `main` — redeploy |
+| `connect() got an unexpected keyword argument 'sslmode'` | older build; asyncpg got a libpq param | Fixed in current `dev` — redeploy |
+| `The asyncio extension requires an async driver` | older build; URL lacked `+asyncpg` | Fixed in current `dev` — the scheme is normalised automatically |
 | `alembic ... auth failed` | wrong credentials in `DATABASE_URL` | Re-copy the Neon string |
 
 **Upgrading from an older config:** the storage variables were renamed from

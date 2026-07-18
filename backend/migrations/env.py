@@ -6,7 +6,7 @@ from sqlalchemy import pool
 from alembic import context
 
 from config import get_settings, verify_database_config
-from db.database import Base
+from db.database import Base, prepare_sync_url
 import models  # registers every model on Base.metadata  # noqa: F401
 
 # this is the Alembic Config object, which provides
@@ -24,13 +24,10 @@ if config.config_file_name is not None:
 _settings = get_settings()
 verify_database_config(_settings)
 
-# Migrations run synchronously — strip the asyncpg driver so SQLAlchemy picks
-# psycopg2. The app itself still uses the async URL from settings. psycopg2
-# accepts Neon's ?sslmode=require verbatim, so no query-string surgery here.
-config.set_main_option(
-    "sqlalchemy.url",
-    _settings.DATABASE_URL.replace("+asyncpg", ""),
-)
+# Migrations run synchronously — normalise the scheme to sync psycopg2 whatever
+# the provider handed us. psycopg2 accepts Neon's ?sslmode=require verbatim, so
+# the query string is left intact here (unlike the asyncpg path).
+config.set_main_option("sqlalchemy.url", prepare_sync_url(_settings.DATABASE_URL))
 
 target_metadata = Base.metadata
 
