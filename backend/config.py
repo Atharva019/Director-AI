@@ -2,6 +2,7 @@
 Application configuration loaded from environment variables via Pydantic Settings.
 """
 
+import os
 from functools import lru_cache
 from typing import List
 
@@ -112,6 +113,30 @@ class Settings(BaseSettings):
         )
 
 
+def _env_presence_report() -> str:
+    """Which expected variables the process can actually see, names only.
+
+    Never reports values — most of these are secrets. The point is to separate
+    "the platform passed nothing" from "the value is present but wrong", which
+    the error message alone cannot distinguish.
+    """
+    expected = [
+        "DATABASE_URL",
+        "APP_ENV",
+        "CORS_ORIGINS",
+        "S3_ENDPOINT_URL",
+        "S3_BUCKET",
+        "NVIDIA_NIM_API_KEY",
+        "FIREBASE_SERVICE_ACCOUNT_JSON",
+    ]
+    present = [n for n in expected if os.environ.get(n, "").strip()]
+    missing = [n for n in expected if n not in present]
+    return (
+        f"Environment seen by this process — set: {', '.join(present) or '(none)'}; "
+        f"empty or absent: {', '.join(missing) or '(none)'}."
+    )
+
+
 def verify_database_config(cfg: Settings) -> None:
     """Refuse to run against the local dev database default in production.
 
@@ -122,12 +147,27 @@ def verify_database_config(cfg: Settings) -> None:
     psycopg2 "connection refused" traceback, which reads like a broken image
     rather than a missing environment variable.
     """
-    if cfg.is_production and not cfg.database_configured:
-        raise RuntimeError(
-            "DATABASE_URL is not configured (still pointing at localhost). "
-            "Set it to your Neon connection string using the asyncpg driver, "
-            "e.g. postgresql+asyncpg://user:pw@ep-xxx.neon.tech/dbname"
+    if not (cfg.is_production and not cfg.database_configured):
+        return
+
+    if not os.environ.get("DATABASE_URL", "").strip():
+        detail = (
+            "DATABASE_URL is not present in this container's environment at "
+            "all. On Render it is declared `sync: false`, which means the "
+            "Blueprint deliberately does not supply it — set it under "
+            "Environment on the service itself, then redeploy."
         )
+    else:
+        detail = (
+            "DATABASE_URL is present but still resolves to a local address, so "
+            "it is likely a placeholder or a copy of the dev default."
+        )
+
+    raise RuntimeError(
+        f"{detail} Expected a Neon connection string using the asyncpg driver, "
+        "e.g. postgresql+asyncpg://user:pw@ep-xxx.neon.tech/dbname?sslmode=require\n"
+        f"{_env_presence_report()}"
+    )
 
 
 @lru_cache()
