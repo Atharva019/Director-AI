@@ -5,6 +5,7 @@ Application configuration loaded from environment variables via Pydantic Setting
 import os
 from functools import lru_cache
 from typing import List
+from urllib.parse import urlsplit
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -93,10 +94,25 @@ class Settings(BaseSettings):
         return self.APP_ENV == "production"
 
     @property
+    def database_host(self) -> str:
+        """Host portion of DATABASE_URL, or "" if it cannot be parsed.
+
+        Safe to log: credentials live in the userinfo section, which urlsplit
+        keeps out of .hostname.
+        """
+        try:
+            return urlsplit(self.DATABASE_URL).hostname or ""
+        except ValueError:
+            return ""
+
+    @property
     def database_configured(self) -> bool:
-        """False while DATABASE_URL is still pointing at a local dev database."""
-        url = self.DATABASE_URL
-        return not ("localhost" in url or "127.0.0.1" in url)
+        """False while DATABASE_URL still points at a local dev database.
+
+        Checks the parsed host rather than substring-matching the whole URL —
+        a password containing "localhost" would otherwise trip this.
+        """
+        return self.database_host not in ("localhost", "127.0.0.1", "::1", "")
 
     @property
     def storage_enabled(self) -> bool:
@@ -150,22 +166,40 @@ def verify_database_config(cfg: Settings) -> None:
     if not (cfg.is_production and not cfg.database_configured):
         return
 
-    if not os.environ.get("DATABASE_URL", "").strip():
+    host = cfg.database_host
+
+    if host:
         detail = (
-            "DATABASE_URL is not present in this container's environment at "
-            "all. On Render it is declared `sync: false`, which means the "
-            "Blueprint deliberately does not supply it — set it under "
-            "Environment on the service itself, then redeploy."
+            f"DATABASE_URL resolves to host {host!r}, which is a local address "
+            "— inside a container that is the container itself, where no "
+            "database is listening."
         )
     else:
         detail = (
-            "DATABASE_URL is present but still resolves to a local address, so "
-            "it is likely a placeholder or a copy of the dev default."
+            "DATABASE_URL is set but no host could be parsed from it. Check for "
+            "a stray quote, a leading or trailing space, or a missing scheme — "
+            "the value must start with postgresql+asyncpg://"
+        )
+
+    # Branch on the environment separately from the effective value: the value
+    # can also arrive from a .env file, so "absent from os.environ" is a hint
+    # about where to fix it, not about whether it is set.
+    if not os.environ.get("DATABASE_URL", "").strip():
+        detail += (
+            " DATABASE_URL is not in this process's environment at all, so this "
+            "is the built-in dev default. On Render the variable is declared "
+            "`sync: false`, meaning the Blueprint deliberately does not supply "
+            "it — set it under Environment on the service itself."
+        )
+    else:
+        detail += (
+            " The value came from the environment, so update it where you set "
+            "it (on Render: the service's Environment tab) and redeploy."
         )
 
     raise RuntimeError(
-        f"{detail} Expected a Neon connection string using the asyncpg driver, "
-        "e.g. postgresql+asyncpg://user:pw@ep-xxx.neon.tech/dbname?sslmode=require\n"
+        f"{detail}\nExpected a connection string using the asyncpg driver, e.g. "
+        "postgresql+asyncpg://user:pw@ep-xxx.neon.tech/dbname?sslmode=require\n"
         f"{_env_presence_report()}"
     )
 

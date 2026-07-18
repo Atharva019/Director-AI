@@ -192,3 +192,34 @@ def test_sync_psycopg2_url_is_left_alone():
     url, args = prepare_asyncpg_url(original)
     assert url == original
     assert args == {}
+
+
+def test_database_host_is_parsed_not_substring_matched():
+    """A password containing 'localhost' must not trip the local-address check."""
+    cfg = Settings(
+        DATABASE_URL="postgresql+asyncpg://user:localhost127.0.0.1pw@ep-x.neon.tech/db"
+    )
+    assert cfg.database_host == "ep-x.neon.tech"
+    assert cfg.database_configured is True
+
+
+def test_database_host_detects_each_local_form():
+    for host in ("localhost", "127.0.0.1"):
+        cfg = Settings(DATABASE_URL=f"postgresql+asyncpg://u:p@{host}:5432/db")
+        assert cfg.database_configured is False, host
+
+
+def test_database_error_names_the_offending_host_not_the_password():
+    """The message goes into deploy logs — it must never echo credentials."""
+    from config import verify_database_config
+
+    cfg = Settings(
+        APP_ENV="production",
+        DATABASE_URL="postgresql+asyncpg://admin:hunter2secret@localhost:5432/db",
+    )
+    with pytest.raises(RuntimeError) as exc:
+        verify_database_config(cfg)
+
+    assert "localhost" in str(exc.value)
+    assert "hunter2secret" not in str(exc.value)
+    assert "admin" not in str(exc.value)
