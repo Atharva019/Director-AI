@@ -48,7 +48,9 @@ async def lifespan(app: FastAPI):
     # ── Startup ───────────────────────────────────────────────────────────
     logger.info("Starting Director AI API [env=%s]", settings.APP_ENV)
 
-    # 1. Create database tables (dev convenience – use Alembic in production)
+    # 1. Create database tables.
+    # NOTE: create_all is for local dev and the SQLite test suite only.
+    # Production schema changes go through Alembic (`alembic upgrade head`).
     async with async_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     logger.info("Database tables ensured.")
