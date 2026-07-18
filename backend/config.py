@@ -71,8 +71,12 @@ class Settings(BaseSettings):
 
     @property
     def cors_origin_list(self) -> List[str]:
-        """Parse comma-separated CORS origins into a list."""
-        return [origin.strip() for origin in self.CORS_ORIGINS.split(",")]
+        """Parse comma-separated CORS origins, dropping blanks.
+
+        An unset CORS_ORIGINS would otherwise yield [""] — a junk entry that
+        matches nothing and makes a misconfiguration look like a CORS bug.
+        """
+        return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
 
     @property
     def max_upload_bytes(self) -> int:
@@ -85,7 +89,17 @@ class Settings(BaseSettings):
 
     @property
     def r2_enabled(self) -> bool:
-        return bool(self.R2_ACCOUNT_ID and self.R2_ACCESS_KEY_ID and self.R2_BUCKET)
+        """R2 is only usable if we can also build a public URL for the object.
+
+        R2_PUBLIC_BASE_URL is part of the requirement: without it, uploads
+        return a relative path that gets persisted to the database forever.
+        """
+        return bool(
+            self.R2_ACCOUNT_ID
+            and self.R2_ACCESS_KEY_ID
+            and self.R2_BUCKET
+            and self.R2_PUBLIC_BASE_URL
+        )
 
 
 @lru_cache()
