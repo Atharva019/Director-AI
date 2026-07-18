@@ -1,10 +1,10 @@
 """
 Image upload handling – validates type & size, resizes if needed, and
-saves to the configured upload directory with a UUID filename.
+uploads to Cloudflare R2, returning the public object URL.
 """
 
 import logging
-import uuid
+from io import BytesIO
 from pathlib import Path
 from typing import Set
 
@@ -12,6 +12,7 @@ from fastapi import UploadFile
 from PIL import Image
 
 from config import get_settings
+from services.storage_service import get_storage_service
 
 logger = logging.getLogger(__name__)
 
@@ -25,15 +26,17 @@ ALLOWED_EXTENSIONS: Set[str] = {".jpg", ".jpeg", ".png", ".webp"}
 
 MAX_DIMENSION = 1920  # px – longest side
 
+# Pillow save format -> HTTP content type, for the R2 object metadata.
+_CONTENT_TYPES = {"JPEG": "image/jpeg", "PNG": "image/png", "WEBP": "image/webp"}
+
 
 class ImageService:
     """Handles image validation, resizing, and persistent storage."""
 
     def __init__(self) -> None:
         settings = get_settings()
-        self.upload_dir = Path(settings.UPLOAD_DIR)
         self.max_bytes = settings.max_upload_bytes
-        self.upload_dir.mkdir(parents=True, exist_ok=True)
+        self._storage = get_storage_service()
 
     async def save_upload(self, file: UploadFile) -> str:
         """
@@ -47,7 +50,7 @@ class ImageService:
         Returns
         -------
         str
-            The relative path (from project root) to the saved image.
+            The public R2 URL of the stored image.
 
         Raises
         ------
@@ -80,8 +83,6 @@ class ImageService:
             )
 
         # ── 4. Open with Pillow, resize if needed ────────────────────────
-        from io import BytesIO
-
         img = Image.open(BytesIO(contents))
         img = self._ensure_rgb(img)
 
@@ -89,16 +90,14 @@ class ImageService:
             img.thumbnail((MAX_DIMENSION, MAX_DIMENSION), Image.LANCZOS)
             logger.info("Resized image to %s", img.size)
 
-        # ── 5. Save with a UUID filename ─────────────────────────────────
-        unique_name = f"{uuid.uuid4().hex}{ext}"
-        save_path = self.upload_dir / unique_name
-
-        # Save in the original format
+        # ── 5. Serialize in the original format and upload to R2 ─────────
         fmt = self._pil_format(ext)
-        img.save(str(save_path), format=fmt, quality=90)
-        logger.info("Saved uploaded image to %s", save_path)
+        out = BytesIO()
+        img.save(out, format=fmt, quality=90)
 
-        return str(save_path)
+        return self._storage.upload_bytes(
+            out.getvalue(), ext, _CONTENT_TYPES.get(fmt, "image/jpeg")
+        )
 
     # ── Internal helpers ──────────────────────────────────────────────────
 

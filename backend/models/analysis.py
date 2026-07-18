@@ -31,6 +31,10 @@ class SceneAnalysis(Base):
     analysis_result: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
     model_used: Mapped[str] = mapped_column(String(128), nullable=False, default="")
     confidence_score: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    # Populated by the Phase 2 public-share feature; null until shared.
+    share_token: Mapped[str | None] = mapped_column(
+        String(48), unique=True, nullable=True, index=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),

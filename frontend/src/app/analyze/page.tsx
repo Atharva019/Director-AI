@@ -6,7 +6,9 @@ import AuthGuard from "@/components/AuthGuard";
 import Navbar from "@/components/Navbar";
 import ImageUploader from "@/components/ImageUploader";
 import AnalysisResultComponent from "@/components/AnalysisResult";
-import { apiUpload, apiGet, apiPost } from "@/lib/api";
+import UpgradeModal from "@/components/UpgradeModal";
+import UsageMeter from "@/components/UsageMeter";
+import { apiUpload, apiGet, apiPost, QuotaError, isQuotaError } from "@/lib/api";
 import type { SceneAnalysis, Project, Scene } from "@/types";
 import styles from "./page.module.css";
 
@@ -27,6 +29,8 @@ function AnalyzeContent() {
   const [analyzing, setAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<SceneAnalysis | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [quotaError, setQuotaError] = useState<QuotaError | null>(null);
+  const [usageKey, setUsageKey] = useState(0);
   const [loadingMsg, setLoadingMsg] = useState(0);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -89,8 +93,15 @@ function AnalyzeContent() {
         sceneIdParam ? { scene_id: sceneIdParam } : undefined
       );
       setAnalysis(result);
+      setUsageKey((k) => k + 1);
     } catch (err: any) {
-      setError(err.message ?? "Analysis failed");
+      // Quota exhaustion gets the upgrade prompt, not a red error banner.
+      if (isQuotaError(err)) {
+        setQuotaError(err);
+        setUsageKey((k) => k + 1);
+      } else {
+        setError(err.message ?? "Analysis failed");
+      }
     } finally {
       setAnalyzing(false);
     }
@@ -139,6 +150,8 @@ function AnalyzeContent() {
 
         {/* Uploader */}
         <div className={`${styles.uploaderSection} animate-fade-in-up`}>
+          <UsageMeter resource="analyses" refreshKey={usageKey} />
+
           <ImageUploader
             onFileSelected={setFile}
             disabled={analyzing}
@@ -278,6 +291,8 @@ function AnalyzeContent() {
           </div>
         )}
       </div>
+
+      <UpgradeModal error={quotaError} onClose={() => setQuotaError(null)} />
     </div>
   );
 }

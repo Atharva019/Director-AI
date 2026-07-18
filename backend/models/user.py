@@ -26,6 +26,10 @@ class User(Base):
     )
     display_name: Mapped[str] = mapped_column(String(255), nullable=False, default="")
     avatar_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    # "free" | "pro" — drives quota enforcement (services/quota_service.py).
+    plan: Mapped[str] = mapped_column(
+        String(16), nullable=False, default="free", server_default="free"
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),

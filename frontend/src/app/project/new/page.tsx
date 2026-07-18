@@ -4,7 +4,9 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import AuthGuard from "@/components/AuthGuard";
 import Navbar from "@/components/Navbar";
-import { apiPost } from "@/lib/api";
+import UpgradeModal from "@/components/UpgradeModal";
+import UsageMeter from "@/components/UsageMeter";
+import { apiPost, QuotaError, isQuotaError } from "@/lib/api";
 import type { Project, Genre } from "@/types";
 import styles from "./page.module.css";
 
@@ -26,6 +28,7 @@ function NewProjectContent() {
   const [description, setDescription] = useState("");
   const [genre, setGenre] = useState<string>("Drama");
   const [error, setError] = useState<string | null>(null);
+  const [quotaError, setQuotaError] = useState<QuotaError | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -45,7 +48,12 @@ function NewProjectContent() {
       });
       router.push(`/project/${project.id}`);
     } catch (err: any) {
-      setError(err.message ?? "Failed to create project");
+      // Quota exhaustion gets the upgrade prompt, not a red error banner.
+      if (isQuotaError(err)) {
+        setQuotaError(err);
+      } else {
+        setError(err.message ?? "Failed to create project");
+      }
     } finally {
       setSubmitting(false);
     }
@@ -54,6 +62,7 @@ function NewProjectContent() {
   return (
     <div className="page-wrapper">
       <Navbar />
+      <UpgradeModal error={quotaError} onClose={() => setQuotaError(null)} />
       <div className="page-content container container-sm">
         {/* Breadcrumb */}
         <nav className={styles.breadcrumb}>

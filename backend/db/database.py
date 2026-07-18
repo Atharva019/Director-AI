@@ -12,12 +12,17 @@ from config import get_settings
 settings = get_settings()
 
 # ── Engine ────────────────────────────────────────────────────────────────────
+# Pool sizing is tuned for the free tier: Neon caps concurrent connections and
+# a Render free instance serves modest traffic, so 20+10 would burn the budget
+# on idle connections (and can exhaust it outright across a redeploy overlap).
+# pool_recycle keeps us under Neon's idle-connection timeout.
 async_engine = create_async_engine(
     settings.DATABASE_URL,
     echo=settings.APP_DEBUG,
-    pool_size=20,
-    max_overflow=10,
+    pool_size=5,
+    max_overflow=5,
     pool_pre_ping=True,
+    pool_recycle=300,
 )
 
 # ── Session factory ───────────────────────────────────────────────────────────

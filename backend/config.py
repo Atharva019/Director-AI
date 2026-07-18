@@ -43,6 +43,20 @@ class Settings(BaseSettings):
 
     # ── Firebase Auth ─────────────────────────────────────────────────────
     FIREBASE_CREDENTIALS_PATH: str = "./firebase-service-account.json"
+    # JSON string of the service account (preferred in production). If set,
+    # takes precedence over FIREBASE_CREDENTIALS_PATH.
+    FIREBASE_SERVICE_ACCOUNT_JSON: str = ""
+
+    # ── Cloudflare R2 (S3-compatible object storage) ──────────────────────
+    R2_ACCOUNT_ID: str = ""
+    R2_ACCESS_KEY_ID: str = ""
+    R2_SECRET_ACCESS_KEY: str = ""
+    R2_BUCKET: str = ""
+    R2_PUBLIC_BASE_URL: str = ""  # e.g. https://pub-xxxx.r2.dev or a custom domain
+
+    # ── Plan limits ───────────────────────────────────────────────────────
+    plan_free_analyses: int = 5
+    plan_free_projects: int = 2
 
     # ── File uploads ──────────────────────────────────────────────────────
     UPLOAD_DIR: str = "./uploads"
@@ -57,13 +71,35 @@ class Settings(BaseSettings):
 
     @property
     def cors_origin_list(self) -> List[str]:
-        """Parse comma-separated CORS origins into a list."""
-        return [origin.strip() for origin in self.CORS_ORIGINS.split(",")]
+        """Parse comma-separated CORS origins, dropping blanks.
+
+        An unset CORS_ORIGINS would otherwise yield [""] — a junk entry that
+        matches nothing and makes a misconfiguration look like a CORS bug.
+        """
+        return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
 
     @property
     def max_upload_bytes(self) -> int:
         """Convert MB limit to bytes."""
         return self.MAX_UPLOAD_SIZE_MB * 1024 * 1024
+
+    @property
+    def is_production(self) -> bool:
+        return self.APP_ENV == "production"
+
+    @property
+    def r2_enabled(self) -> bool:
+        """R2 is only usable if we can also build a public URL for the object.
+
+        R2_PUBLIC_BASE_URL is part of the requirement: without it, uploads
+        return a relative path that gets persisted to the database forever.
+        """
+        return bool(
+            self.R2_ACCOUNT_ID
+            and self.R2_ACCESS_KEY_ID
+            and self.R2_BUCKET
+            and self.R2_PUBLIC_BASE_URL
+        )
 
 
 @lru_cache()
