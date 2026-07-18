@@ -81,18 +81,24 @@ a public bucket means the key is the only access control.
 
 1. Render → **New → Blueprint**, point it at this repo. It picks up
    `backend/render.yaml` (Docker runtime, free plan, health check on `/health`).
-2. Fill in every `sync: false` variable in the dashboard:
+2. Fill in **every** `sync: false` variable in the dashboard before the first
+   deploy — the API refuses to boot in production if any of these is missing:
    - `DATABASE_URL` — from step 1
-   - `NVIDIA_NIM_API_KEY`, `GEMINI_API_KEY` — freshly rotated keys
+   - `NVIDIA_NIM_API_KEY` (and `GEMINI_API_KEY` if using the fallback)
    - `FIREBASE_SERVICE_ACCOUNT_JSON` — the entire service-account JSON, one line
    - the six `S3_*` values from step 2
-   - `CORS_ORIGINS` — leave blank for now, set in step 5
+   - `CORS_ORIGINS` — **must be non-empty now, not later.** You pick your Vercel
+     project name, so the domain is predictable: set
+     `https://<your-vercel-project>.vercel.app`. Correct it in step 5 if the
+     real domain differs.
 3. Deploy. Confirm `https://<service>.onrender.com/health` returns
    `{"status":"healthy",...}`.
 
-`APP_ENV=production` is set in the blueprint, which turns on two hardening
-behaviours: the permissive CORS regex is disabled, and a misconfigured Firebase
-credential crashes the boot instead of silently disabling auth.
+`APP_ENV=production` turns on fail-fast startup checks: incomplete object
+storage, empty/wildcard `CORS_ORIGINS`, and a broken Firebase credential each
+abort the boot rather than serving a subtly broken API. That is deliberate, but
+it means **a missing variable looks like a failed deploy**. The log line names
+the exact variable — see Troubleshooting below.
 
 > Free-tier Render spins down after ~15 min idle; the first request afterwards
 > takes ~30s. Expected, not a bug.
@@ -133,6 +139,27 @@ credential crashes the boot instead of silently disabling auth.
 
 Check `waitlist` count against the Phase 3 gate (25 signups) in
 `docs/progress.md`.
+
+## Troubleshooting a failed Render deploy
+
+Render's notification reads `Deploy failed for <sha>: <commit message>`. The text
+after the colon is the **commit message, not the error** — ignore it. Open
+*Render → your service → Logs* and look at the last few lines before the crash.
+
+| Log line contains | Cause | Fix |
+|---|---|---|
+| `CORS_ORIGINS is empty in production` | `CORS_ORIGINS` unset | Set it to your Vercel origin, no trailing slash |
+| `CORS_ORIGINS contains '*'` | wildcard with credentials enabled | Use exact origins |
+| `Object storage is not fully configured` | one of the four required `S3_*` vars missing | Set `S3_ENDPOINT_URL`, `S3_ACCESS_KEY_ID`, `S3_BUCKET`, `S3_PUBLIC_BASE_URL` |
+| `No AI provider configured` | no `NVIDIA_NIM_API_KEY` and Gemini disabled | Set `NVIDIA_NIM_API_KEY` |
+| `Firebase credential is configured but failed to load` | malformed `FIREBASE_SERVICE_ACCOUNT_JSON` | Re-paste the whole JSON on one line, no stray newlines |
+| `alembic ... connection refused` / auth failed | bad `DATABASE_URL` | Check the Neon string and that it uses `+asyncpg` |
+
+**Upgrading from an older config:** the storage variables were renamed from
+`R2_*` to `S3_*`. If your Render service still has `R2_ACCOUNT_ID` etc., those
+are now ignored and the boot fails the storage check. Delete them and set the
+`S3_*` equivalents — `S3_ENDPOINT_URL` is
+`https://<r2_account_id>.r2.cloudflarestorage.com` with `S3_REGION=auto`.
 
 ## Rollback
 
