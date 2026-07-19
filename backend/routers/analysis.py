@@ -49,15 +49,14 @@ async def analyze_image(
 
     # 1. Save and validate the upload
     try:
-        image_path = await _image_svc.save_upload(file)
+        image_path, image_bytes = await _image_svc.save_upload(file)
     except ValueError as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail=str(exc))
 
-    # 2. Run the analysis
+    # 2. Run the analysis on the bytes we just stored — image_path is now a
+    #    public object-storage URL, not a readable local path.
     try:
-        result = await _analyzer.analyze(image_path)
-    except FileNotFoundError as exc:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, detail=str(exc))
+        result = await _analyzer.analyze(image_bytes)
     except RuntimeError as exc:
         raise HTTPException(status.HTTP_502_BAD_GATEWAY, detail=f"AI service error: {exc}")
 

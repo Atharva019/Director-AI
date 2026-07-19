@@ -6,7 +6,7 @@ uploads to Cloudflare R2, returning the public object URL.
 import logging
 from io import BytesIO
 from pathlib import Path
-from typing import Set
+from typing import Set, Tuple
 
 from fastapi import UploadFile
 from PIL import Image
@@ -38,7 +38,7 @@ class ImageService:
         self.max_bytes = settings.max_upload_bytes
         self._storage = get_storage_service()
 
-    async def save_upload(self, file: UploadFile) -> str:
+    async def save_upload(self, file: UploadFile) -> Tuple[str, bytes]:
         """
         Validate, optionally resize, and persist an uploaded image.
 
@@ -49,8 +49,10 @@ class ImageService:
 
         Returns
         -------
-        str
-            The public R2 URL of the stored image.
+        (str, bytes)
+            The public object URL, and the processed image bytes. The bytes
+            come back so the analyzer does not have to re-download the object
+            we just uploaded — there is no local file to read any more.
 
         Raises
         ------
@@ -95,9 +97,11 @@ class ImageService:
         out = BytesIO()
         img.save(out, format=fmt, quality=90)
 
-        return self._storage.upload_bytes(
-            out.getvalue(), ext, _CONTENT_TYPES.get(fmt, "image/jpeg")
+        data = out.getvalue()
+        url = self._storage.upload_bytes(
+            data, ext, _CONTENT_TYPES.get(fmt, "image/jpeg")
         )
+        return url, data
 
     # ── Internal helpers ──────────────────────────────────────────────────
 

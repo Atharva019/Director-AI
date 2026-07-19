@@ -1,35 +1,19 @@
 import { auth, onAuthChange } from "@/lib/firebase";
 
 function getBaseUrl(): string {
-  if (typeof window === "undefined") {
-    return process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
-  }
+  // In the browser every call is same-origin: `/api/v1/...` is proxied to the
+  // real backend by the rewrite in next.config.ts (target: API_PROXY_ORIGIN).
+  //
+  // This is deliberate rather than pointing fetch straight at the backend
+  // host. Same-origin requests are not subject to CORS at all, so a wrong or
+  // trailing-slashed CORS_ORIGINS can no longer take the whole app down — and
+  // the previous host-guessing heuristic built `https://<app>.vercel.app:8000`
+  // in production, which nothing listens on ("Failed to fetch" on every call).
+  if (typeof window !== "undefined") return "";
 
-  const { protocol, hostname, port } = window.location;
-
-  // 1. VS Code Port Forwarding / GitHub Codespaces (e.g. xxx-3000.app.dev)
-  if (hostname.includes("-3000")) {
-    return `${protocol}//${hostname.replace("-3000", "-8000")}`;
-  }
-
-  // 2. Gitpod Port Forwarding (e.g. 3000-xxx.gitpod.io)
-  if (hostname.startsWith("3000-")) {
-    return `${protocol}//${hostname.replace("3000-", "8000-")}`;
-  }
-
-  // 3. Local Development (e.g. localhost:3000, 127.0.0.1:3000)
-  // Resolve 'localhost' to '127.0.0.1' to prevent IPv6 (::1) DNS resolution failures
-  let apiHost = hostname;
-  if (hostname === "localhost") {
-    apiHost = "127.0.0.1";
-  }
-
-  if (port) {
-    return `${protocol}//${apiHost}:8000`;
-  }
-
-  // 4. Default fallback
-  return process.env.NEXT_PUBLIC_API_URL ?? `${protocol}//${apiHost}:8000`;
+  // Server components have no origin to be relative to, so they need the
+  // absolute backend URL.
+  return process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
 }
 
 export const BASE_URL = getBaseUrl();

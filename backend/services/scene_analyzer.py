@@ -7,7 +7,6 @@ the response into a typed AnalysisResult dict.
 import base64
 import json
 import logging
-from pathlib import Path
 from typing import Any, Dict, Optional
 
 from services.ai_provider import AIProvider
@@ -48,19 +47,23 @@ class SceneAnalyzer:
 
     async def analyze(
         self,
-        image_path: str,
+        image_bytes: bytes,
         *,
         model: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Analyze a film still / reference image.
 
+        Takes bytes rather than a path: uploads go straight to object storage,
+        so there is no local file to read back. The caller already holds the
+        processed bytes, which also saves re-downloading what we just sent.
+
         Parameters
         ----------
-        image_path : str
-            Absolute or relative path to the image on disk.
+        image_bytes : bytes
+            The encoded image (JPEG/PNG/WebP).
         model : str, optional
-            Override the default Ollama model.
+            Override the default vision model.
 
         Returns
         -------
@@ -70,19 +73,9 @@ class SceneAnalyzer:
 
         Raises
         ------
-        FileNotFoundError
-            If the image_path does not exist.
         ValueError
-            If the file cannot be read or encoded.
+            If the image cannot be read or encoded.
         """
-        # 1. Validate the file exists
-        path = Path(image_path)
-        if not path.exists():
-            raise FileNotFoundError(f"Image not found: {image_path}")
-
-        # 2. Read, compress, and encode to base64
-        image_bytes = path.read_bytes()
-        
         # Vision APIs have a strict base64 payload limit. Resize/compress first.
         import io
         from PIL import Image
@@ -107,7 +100,7 @@ class SceneAnalyzer:
         image_b64 = base64.b64encode(image_bytes).decode("utf-8")
 
         # 3. Send to AI provider (NVIDIA NIM → optional Gemini fallback)
-        logger.info("Sending image %s for AI analysis (model=%s)", path.name, model or "default")
+        logger.info("Sending image (%d bytes) for AI analysis (model=%s)", len(image_bytes), model or "default")
         response = await self.ai_client.analyze_image(
             image_base64=image_b64,
             prompt=SCENE_ANALYSIS_PROMPT,

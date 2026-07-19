@@ -116,10 +116,24 @@ the exact variable — see Troubleshooting below.
 1. Vercel → **Import** this repo, root directory `frontend`.
 2. Environment variables (see `frontend/.env.local.example`):
    - the six `NEXT_PUBLIC_FIREBASE_*` values
-   - `NEXT_PUBLIC_API_URL` = the Render URL
-   - `API_PROXY_ORIGIN` = the Render URL
+   - `API_PROXY_ORIGIN` = the Render URL — **the important one**, see below
+   - `NEXT_PUBLIC_API_URL` = the Render URL (server components only)
    - `NEXT_PUBLIC_IMAGE_HOSTNAME` = the host from `S3_PUBLIC_BASE_URL` (hostname only)
 3. Deploy, note the production domain.
+
+> **`API_PROXY_ORIGIN` is read at build time, not runtime.** Next evaluates
+> `rewrites()` in `next.config.ts` while building and bakes the target into the
+> output — verified by starting a build made without it and watching it proxy to
+> the stale default. So: set it *before* the first deploy, and **redeploy after
+> any change**. Editing it in the dashboard alone changes nothing.
+>
+> If it is missing at build time the app proxies to `http://127.0.0.1:8000`,
+> which on Vercel is nothing — every request fails as `Failed to fetch`.
+
+**Why the browser never calls Render directly.** All browser requests go to
+`/api/v1/*` on the Vercel origin, and Next proxies them server-side. Same-origin
+requests are not subject to CORS at all, so a mistyped `CORS_ORIGINS` cannot take
+the app down. It also means the backend URL is not baked into the client bundle.
 
 ## 5. Close the loop
 
@@ -166,6 +180,19 @@ after the colon is the **commit message, not the error** — ignore it. Open
 | `connect() got an unexpected keyword argument 'sslmode'` | older build; asyncpg got a libpq param | Fixed in current `dev` — redeploy |
 | `The asyncio extension requires an async driver` | older build; URL lacked `+asyncpg` | Fixed in current `dev` — the scheme is normalised automatically |
 | `alembic ... auth failed` | wrong credentials in `DATABASE_URL` | Re-copy the Neon string |
+
+## Troubleshooting the frontend
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `Failed to fetch` on **every** operation | `API_PROXY_ORIGIN` missing or set after the build — the proxy still targets `127.0.0.1:8000` | Set it in Vercel, then **redeploy**. A dashboard edit without a rebuild has no effect |
+| `Failed to fetch` on some operations only | backend asleep (free tier, ~30s cold start) | Retry after the first request wakes it |
+| Login does nothing, no error | Vercel domain not in Firebase authorized domains | Firebase console → Authentication → Settings → Authorized domains |
+| Analysis works, image is broken | `NEXT_PUBLIC_IMAGE_HOSTNAME` doesn't match `S3_PUBLIC_BASE_URL`'s host | Set it to the hostname only, no scheme or path, then redeploy |
+
+`Failed to fetch` is a network-layer failure — the browser never got a readable
+response. Check the Network tab: a request to `<vercel-domain>:8000` or to
+`127.0.0.1:8000` means the proxy target is wrong, not the backend.
 
 **Upgrading from an older config:** the storage variables were renamed from
 `R2_*` to `S3_*`. If your Render service still has `R2_ACCOUNT_ID` etc., those

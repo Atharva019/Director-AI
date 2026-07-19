@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import AuthGuard from "@/components/AuthGuard";
 import Navbar from "@/components/Navbar";
 import AnalysisResultComponent from "@/components/AnalysisResult";
-import { apiGet, BASE_URL } from "@/lib/api";
+import { apiGet } from "@/lib/api";
 import type { SceneAnalysis } from "@/types";
 import styles from "./page.module.css";
 
@@ -133,7 +133,7 @@ function HistoryContent() {
                     <div className={styles.expandedContent} onClick={(e) => e.stopPropagation()}>
                       <AnalysisResultComponent 
                         result={a.analysis_result} 
-                        imageUrl={a.image_path ? `${BASE_URL}/${a.image_path}` : undefined} 
+                        imageUrl={a.image_path || undefined}
                       />
                     </div>
                   )}

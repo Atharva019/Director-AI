@@ -59,13 +59,21 @@ def _image_service_with_fake_storage(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_save_upload_returns_r2_url(monkeypatch):
+async def test_save_upload_returns_url_and_bytes(monkeypatch):
+    """The bytes come back so the analyzer never re-downloads the object.
+
+    image_path is a public URL now, not a readable path — an analyzer that
+    took the path would fail on every upload.
+    """
     svc, fake_storage = _image_service_with_fake_storage(monkeypatch)
 
-    url = await svc.save_upload(_png_upload())
+    url, data = await svc.save_upload(_png_upload())
 
     assert url == "https://pub.example.r2.dev/analyses/abc.png"
     fake_storage.upload_bytes.assert_called_once()
+    # What we hand the analyzer must be exactly what we stored.
+    assert data == fake_storage.upload_bytes.call_args.args[0]
+    assert data[:8] == b"\x89PNG\r\n\x1a\n"
 
 
 @pytest.mark.asyncio
