@@ -186,6 +186,7 @@ after the colon is the **commit message, not the error** — ignore it. Open
 | Symptom | Cause | Fix |
 |---|---|---|
 | `Failed to fetch` on **every** operation | `API_PROXY_ORIGIN` missing or set after the build — the proxy still targets `127.0.0.1:8000` | Set it in Vercel, then **redeploy**. A dashboard edit without a rebuild has no effect |
+| `Failed to fetch` **after login**, on the dashboard, while the proxy itself works (`curl` gets 401) | a backend collection route defined with a trailing slash (`@router.get("/")`). Next strips the slash, FastAPI 307s it back **cross-origin** to the raw Render host, and the browser's follow-up fails CORS | Define collection routes slash-less (`@router.get("")`) and keep `redirect_slashes=False` on the app. Guarded by `test_no_route_ends_in_trailing_slash` |
 | `Failed to fetch` on some operations only | backend asleep (free tier, ~30s cold start) | Retry after the first request wakes it |
 | Login does nothing, no error | Vercel domain not in Firebase authorized domains | Firebase console → Authentication → Settings → Authorized domains |
 | Analysis works, image is broken | `NEXT_PUBLIC_IMAGE_HOSTNAME` doesn't match `S3_PUBLIC_BASE_URL`'s host | Set it to the hostname only, no scheme or path, then redeploy |

@@ -4,7 +4,7 @@ from httpx import AsyncClient
 @pytest.mark.asyncio
 async def test_create_project(client: AsyncClient):
     response = await client.post(
-        "/api/v1/projects/",
+        "/api/v1/projects",
         json={"title": "Test Project", "genre": "Action"}
     )
     assert response.status_code == 201
@@ -15,10 +15,10 @@ async def test_create_project(client: AsyncClient):
 @pytest.mark.asyncio
 async def test_list_projects(client: AsyncClient):
     await client.post(
-        "/api/v1/projects/",
+        "/api/v1/projects",
         json={"title": "Test Project", "genre": "Action"}
     )
-    response = await client.get("/api/v1/projects/")
+    response = await client.get("/api/v1/projects")
     assert response.status_code == 200
     data = response.json()
     assert len(data) >= 1
@@ -27,7 +27,7 @@ async def test_list_projects(client: AsyncClient):
 @pytest.mark.asyncio
 async def test_get_project(client: AsyncClient):
     create_response = await client.post(
-        "/api/v1/projects/",
+        "/api/v1/projects",
         json={"title": "Test Project", "genre": "Action"}
     )
     project_id = create_response.json()["id"]
@@ -39,7 +39,7 @@ async def test_get_project(client: AsyncClient):
 @pytest.mark.asyncio
 async def test_update_project(client: AsyncClient):
     create_response = await client.post(
-        "/api/v1/projects/",
+        "/api/v1/projects",
         json={"title": "Test Project", "genre": "Action"}
     )
     project_id = create_response.json()["id"]
@@ -54,7 +54,7 @@ async def test_update_project(client: AsyncClient):
 @pytest.mark.asyncio
 async def test_delete_project(client: AsyncClient):
     create_response = await client.post(
-        "/api/v1/projects/",
+        "/api/v1/projects",
         json={"title": "Test Project", "genre": "Action"}
     )
     project_id = create_response.json()["id"]

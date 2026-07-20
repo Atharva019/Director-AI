@@ -95,6 +95,37 @@ def test_production_startup_rejects_wildcard_cors():
         verify_cors_config(Settings(APP_ENV="production", CORS_ORIGINS="*"))
 
 
+# ── Routing behind the proxy ─────────────────────────────────────────────────
+
+
+def test_no_route_ends_in_trailing_slash():
+    """A trailing-slash route is unreachable behind the Vercel proxy.
+
+    Next strips the trailing slash before proxying, so the browser can never
+    hit a "/"-suffixed route; FastAPI would 307 it cross-origin to the raw
+    backend host, which fails CORS as "Failed to fetch". Keep every route
+    slash-less so the browser reaches it directly.
+    """
+    from fastapi.routing import APIRoute
+
+    from main import app
+
+    offenders = [
+        r.path
+        for r in app.routes
+        if isinstance(r, APIRoute) and r.path != "/" and r.path.endswith("/")
+    ]
+    assert offenders == [], f"routes end in '/': {offenders}"
+
+
+def test_slash_redirect_is_disabled():
+    """redirect_slashes off = a mismatch is a loud 404, not a silent
+    cross-origin 307."""
+    from main import app
+
+    assert app.router.redirect_slashes is False
+
+
 # ── Schema management ────────────────────────────────────────────────────────
 
 

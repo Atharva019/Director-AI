@@ -154,6 +154,14 @@ app = FastAPI(
     description="AI-powered filmmaking assistant – cinematography analysis, project management, and shot planning.",
     version="0.1.0",
     lifespan=lifespan,
+    # Behind the Vercel proxy, FastAPI's slash-redirect rebuilds the URL from
+    # its own host, so a trailing-slash mismatch 307s the browser cross-origin
+    # to the raw Render URL — which then fails CORS as "Failed to fetch". Next
+    # always strips the trailing slash, so the browser can never satisfy a
+    # "/"-suffixed route anyway. Turn the redirect off: routes must match
+    # exactly, and a mismatch is a loud 404 in dev rather than silent prod
+    # breakage. All collection routes are defined slash-less to suit.
+    redirect_slashes=False,
 )
 
 # ── CORS ──────────────────────────────────────────────────────────────────────

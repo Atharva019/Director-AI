@@ -5,7 +5,7 @@ from httpx import AsyncClient
 @pytest_asyncio.fixture
 async def test_project(client: AsyncClient):
     response = await client.post(
-        "/api/v1/projects/",
+        "/api/v1/projects",
         json={"title": "Scene Test Project", "genre": "Drama"}
     )
     return response.json()

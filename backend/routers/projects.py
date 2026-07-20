@@ -19,7 +19,7 @@ router = APIRouter(prefix="/projects", tags=["Projects"])
 _svc = ProjectService()
 
 
-@router.post("/", response_model=ProjectResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=ProjectResponse, status_code=status.HTTP_201_CREATED)
 async def create_project(
     payload: ProjectCreate,
     current_user: User = Depends(get_current_user),
@@ -38,7 +38,7 @@ async def create_project(
     return ProjectResponse.model_validate(project)
 
 
-@router.get("/", response_model=List[ProjectResponse])
+@router.get("", response_model=List[ProjectResponse])
 async def list_projects(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
