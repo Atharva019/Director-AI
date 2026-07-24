@@ -77,7 +77,15 @@ export default function SceneAnalyses({ sceneId }: Props) {
                 onClick={() => setExpandedId(isExpanded ? null : a.id)}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: "var(--sp-3)" }}>
-                  <span style={{ fontSize: "1.2rem" }}>📸</span>
+                  {a.image_path ? (
+                    <img
+                      src={a.image_path}
+                      alt="Thumbnail"
+                      style={{ width: 32, height: 32, borderRadius: "var(--radius-sm)", objectFit: "cover" }}
+                    />
+                  ) : (
+                    <span style={{ fontSize: "1.2rem" }}>📸</span>
+                  )}
                   <div>
                     <div style={{ fontWeight: "var(--fw-medium)", fontSize: "var(--fs-sm)" }}>
                       Analysis with {a.model_used}
@@ -98,7 +106,7 @@ export default function SceneAnalyses({ sceneId }: Props) {
               </div>
               {isExpanded && (
                 <div style={{ padding: "var(--sp-4)", borderTop: "1px solid var(--border-subtle)" }}>
-                  <AnalysisResultComponent result={a.analysis_result} />
+                  <AnalysisResultComponent result={a.analysis_result} imageUrl={a.image_path || undefined} />
                 </div>
               )}
             </div>

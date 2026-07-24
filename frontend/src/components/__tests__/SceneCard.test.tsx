@@ -37,8 +37,6 @@ const mockScene: Scene = {
   mood: 'happy',
   notes: 'Test Notes',
   shots_count: 0,
-  created_at: '2023-01-01T00:00:00Z',
-  updated_at: '2023-01-01T00:00:00Z',
 }
 
 describe('SceneCard', () => {

@@ -74,10 +74,20 @@ function AnalyzeContent() {
   useEffect(() => {
     if (!selectedProjectId) {
       setScenes([]);
+      setSelectedSceneId("");
       return;
     }
     apiGet<Scene[]>(`/api/v1/projects/${selectedProjectId}/scenes`)
-      .then(setScenes)
+      .then((data) => {
+        setScenes(data);
+        if (data.length > 0) {
+          setSelectedSceneId((prev) =>
+            data.some((s) => String(s.id) === prev) ? prev : String(data[0].id)
+          );
+        } else {
+          setSelectedSceneId("");
+        }
+      })
       .catch(console.error);
   }, [selectedProjectId]);
 
@@ -118,11 +128,30 @@ function AnalyzeContent() {
   };
 
   const handleSave = async () => {
-    if (!analysis) return;
+    if (!analysis || !selectedProjectId) return;
     setSaving(true);
     setSaveError(null);
     try {
-      await apiPost(`/api/v1/analyses/${analysis.id}/attach/${selectedSceneId}`);
+      let targetSceneId = selectedSceneId;
+      if (!targetSceneId) {
+        if (scenes.length > 0) {
+          targetSceneId = String(scenes[0].id);
+        } else {
+          const createdScene = await apiPost<Scene>(
+            `/api/v1/projects/${selectedProjectId}/scenes`,
+            {
+              scene_number: 1,
+              title: "Scene 1",
+              location_type: "interior",
+              time_of_day: "day",
+              mood: analysis.analysis_result?.overall_mood || "Cinematic"
+            }
+          );
+          targetSceneId = String(createdScene.id);
+        }
+      }
+
+      await apiPost(`/api/v1/analyses/${analysis.id}/attach/${targetSceneId}`);
       setSaveSuccess(true);
       setTimeout(() => {
         setShowSaveModal(false);
@@ -235,22 +264,27 @@ function AnalyzeContent() {
                   ))}
                 </select>
               </div>
-              {scenes.length > 0 && (
-                <div className="form-group mb-4">
-                  <label className="form-label">Scene (optional)</label>
-                  <select
-                    className="select"
-                    value={selectedSceneId}
-                    onChange={(e) => setSelectedSceneId(e.target.value)}
-                  >
-                    <option value="">No specific scene</option>
-                    {scenes.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        Scene {s.scene_number}: {s.title}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              {selectedProjectId && (
+                scenes.length > 0 ? (
+                  <div className="form-group mb-4">
+                    <label className="form-label">Target Scene</label>
+                    <select
+                      className="select"
+                      value={selectedSceneId}
+                      onChange={(e) => setSelectedSceneId(e.target.value)}
+                    >
+                      {scenes.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          Scene {s.scene_number}: {s.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : (
+                  <div className="mb-4 text-xs text-tertiary" style={{ background: "rgba(255, 255, 255, 0.04)", padding: "var(--sp-3)", borderRadius: "var(--radius-md)", border: "1px solid var(--border-subtle)" }}>
+                    ℹ️ This project has no scenes yet. A new <strong>Scene 1</strong> will be created automatically to attach this analysis.
+                  </div>
+                )
               )}
               <div className="flex justify-end gap-3">
                 {saveSuccess && (

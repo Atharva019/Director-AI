@@ -16,7 +16,6 @@ const mockProject: Project = {
   status: 'draft',
   genre: 'action',
   scenes_count: 5,
-  user_id: 1,
   created_at: '2023-01-01T00:00:00Z',
   updated_at: '2023-01-01T00:00:00Z',
 }

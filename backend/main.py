@@ -6,6 +6,7 @@ Run with:
 """
 
 import logging
+import re
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, status
@@ -27,6 +28,8 @@ from routers import (
     analysis_router,
     waitlist_router,
 )
+
+BUCKET_NAME_REGEX = re.compile(r"^[a-zA-Z0-9.\-_]{1,255}$")
 
 
 logger = logging.getLogger(__name__)
@@ -68,6 +71,13 @@ def verify_storage_config(cfg) -> None:
             "S3_ACCESS_KEY_ID, S3_BUCKET, S3_PUBLIC_BASE_URL). Refusing to "
             "start: uploads would be persisted as unusable relative paths. "
             "See docs/deploy.md for per-provider values."
+        )
+
+    if cfg.S3_BUCKET and not BUCKET_NAME_REGEX.match(cfg.S3_BUCKET):
+        raise RuntimeError(
+            f"Invalid S3_BUCKET name {cfg.S3_BUCKET!r}. Bucket names cannot contain "
+            "spaces or special characters. Use a valid bucket name without spaces, "
+            "such as 'image-db' or 'director-ai-images'."
         )
 
 

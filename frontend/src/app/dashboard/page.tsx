@@ -280,7 +280,7 @@ function DashboardContent() {
                       <div className={styles.miniCardThumb}>
                         {analysis.image_path ? (
                           <img
-                            src={`/api/v1${analysis.image_path}`}
+                            src={analysis.image_path}
                             alt="Analysis thumbnail"
                             className={styles.thumbImg}
                           />

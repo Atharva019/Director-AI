@@ -103,10 +103,12 @@ async def get_analysis(
 ) -> SceneAnalysisResponse:
     """Retrieve a single analysis by ID (must belong to the current user)."""
     result = await db.execute(
-        select(SceneAnalysis).where(
+        select(SceneAnalysis)
+        .where(
             SceneAnalysis.id == analysis_id,
             SceneAnalysis.user_id == current_user.id,
         )
+        .options(selectinload(SceneAnalysis.scene))
     )
     analysis = result.scalar_one_or_none()
     if analysis is None:
@@ -133,10 +135,12 @@ async def attach_analysis_to_scene(
     """
     # Verify analysis ownership
     result = await db.execute(
-        select(SceneAnalysis).where(
+        select(SceneAnalysis)
+        .where(
             SceneAnalysis.id == analysis_id,
             SceneAnalysis.user_id == current_user.id,
         )
+        .options(selectinload(SceneAnalysis.scene))
     )
     analysis = result.scalar_one_or_none()
     if analysis is None:
@@ -147,7 +151,14 @@ async def attach_analysis_to_scene(
 
     # Attach
     analysis.scene_id = scene_id
-    await db.flush()
-    await db.refresh(analysis)
+    await db.commit()
+
+    # Re-fetch with selectinload so relationship is available for Pydantic serialization
+    result = await db.execute(
+        select(SceneAnalysis)
+        .where(SceneAnalysis.id == analysis_id)
+        .options(selectinload(SceneAnalysis.scene))
+    )
+    analysis = result.scalar_one()
 
     return SceneAnalysisResponse.model_validate(analysis)

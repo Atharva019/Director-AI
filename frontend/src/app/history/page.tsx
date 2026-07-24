@@ -113,7 +113,17 @@ function HistoryContent() {
                   onClick={() => toggleExpand(a.id)}
                 >
                   <div className={styles.cardHeader}>
-                    <div className={styles.cardIcon}>📸</div>
+                    <div className={styles.cardIcon}>
+                      {a.image_path ? (
+                        <img
+                          src={a.image_path}
+                          alt="Analysis thumbnail"
+                          className={styles.thumbImg}
+                        />
+                      ) : (
+                        "📸"
+                      )}
+                    </div>
                     <div className={styles.cardInfo}>
                       <div className={styles.cardModel}>
                         {a.scene ? `Scene ${a.scene.scene_number}: ${a.scene.title}` : "Unattached Analysis"}
