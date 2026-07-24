@@ -12,7 +12,7 @@ from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from config import get_settings
+from config import get_settings, verify_database_config
 from db.database import Base, async_engine
 
 # Import all models so they are registered on Base.metadata
@@ -102,14 +102,24 @@ async def lifespan(app: FastAPI):
     logger.info("Starting Director AI API [env=%s]", settings.APP_ENV)
 
     # 0. Fail fast on a production misconfiguration, before serving anything.
+    verify_database_config(settings)
     verify_storage_config(settings)
     verify_cors_config(settings)
 
     # 1. Create database tables (dev/test only — Alembic owns prod).
     if should_create_all(settings):
-        async with async_engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-        logger.info("Database tables ensured (create_all, non-production).")
+        try:
+            async with async_engine.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+            logger.info("Database tables ensured (create_all, non-production).")
+        except Exception as exc:
+            logger.error("Database connection failed for host %r: %s", settings.database_host, exc)
+            raise RuntimeError(
+                f"Database connection failed for host {settings.database_host!r}: {exc}. "
+                "If you are deploying to Render, please set the following environment variables in the Render Dashboard (Environment tab):\n"
+                "  1. DATABASE_URL = <your pooled Neon connection string (e.g. postgresql+asyncpg://...neon.tech/...)>\n"
+                "  2. APP_ENV = production"
+            ) from exc
     else:
         logger.info("Production: schema managed by Alembic, skipping create_all.")
 
