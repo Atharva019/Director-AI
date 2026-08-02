@@ -1,61 +1,89 @@
 # 🎬 Director AI
 
-Director AI is a powerful, local-first cinematography companion application. It acts as your AI-powered Director of Photography—helping filmmakers plan projects, organize scenes, build shot lists, and automatically reverse-engineer lighting and camera settings from reference images using local Vision AI models.
+Director AI is a production-ready, cloud-native cinematography companion and shot-planning application. It acts as an AI-powered Director of Photography—helping filmmakers plan projects, organize scenes, build shot lists, and automatically reverse-engineer lighting setups, camera specs, and color palettes from reference stills using high-performance Vision AI models.
+
+---
 
 ## ✨ Key Features
 
-- **Project Management**: Create and organize filmmaking projects with dynamic statuses, genres, and rich descriptions. Search and filter projects straight from your dashboard.
-- **Scene & Shot Planning**: Define scenes (interior/exterior, time of day, mood) and break them down into highly specific shots (camera angles, movements, and focal lengths).
-- **AI Cinematography Analysis**: Upload any reference film still, and local AI (powered by Ollama and `gemma3:4b` or `llava`) will break down the exact lighting setup, focal length, framing, color palettes, and practical set instructions.
-- **Visual Enhancements**:
-  - **Composition Overlays**: Toggle a Rule-of-Thirds grid over your analyzed images.
-  - **Color Palettes**: Automatically extract and display the dominant color swatches for color-grading references.
-  - **Lighting Diagrams**: Dynamically generated 3-point overhead lighting diagrams (Key, Fill, Back light) based on the AI's analysis of the scene.
-- **Call Sheet Exports**: Export your entire project's shot list into a beautifully formatted, print-ready PDF with a single click.
-- **Beautiful UI**: A highly responsive, premium dark-themed interface built using glassmorphism, vanilla CSS modules, and Next.js.
-- **Fully Tested**: Automated CI/CD-ready test suites using **Pytest** for the backend and **Vitest** for the frontend.
+- **Multi-Provider Vision AI Pipeline**: Reverse-engineers film reference images into precise lighting setups, focal lengths, camera angles, color swatches, and set instructions using **NVIDIA NIM** (`meta/llama-3.2-90b-vision-instruct`) with automatic fallback to **Google Gemini Vision** (`gemini-2.0-flash`).
+- **Interactive Visual Overlays**:
+  - **Composition Grids**: Toggle a Rule-of-Thirds composition overlay on reference stills.
+  - **Color Palette Extraction**: Automatically extract dominant HEX color swatches for color grading.
+  - **3-Point Lighting Diagrams**: Dynamically rendered overhead lighting diagrams (Key, Fill, and Back light placement, intensity, and color temperature).
+- **Project & Shot Planning**: Define scenes (interior/exterior, time-of-day, mood) and break them down into granular shot lists (camera motion, lens choice, subject framing).
+- **Scene Analysis Association**: Analyze reference stills standalone or directly link analysis records to specific project scenes.
+- **Call Sheet PDF Exports**: Generate formatted, print-ready production call sheets and shot list PDFs in a single click (powered by client-side jsPDF).
+- **Cloud Object Storage**: Provider-agnostic S3 object storage integration (Cloudflare R2, AWS S3) for zero-data-loss image serving across ephemeral deployments.
+- **Tiered Quota & Usage Enforcement**: Database-backed usage metering (Free tier: 5 analyses/month, 2 projects) with interactive upgrade modals and IP-based sliding-window rate limiting.
+- **Pro Waitlist Funnel**: Built-in waitlist tracking for premium tier conversion.
+- **Enterprise Security**: Firebase Auth integration (Google Sign-In, Email/Password), IDOR ownership validation, strict startup environment guards, and CORS/proxy security.
+- **Automated Testing**: CI/CD-ready test suites using **Pytest** for backend API/security tests and **Vitest** for frontend component/API tests.
+
+---
+
+## 🏗️ Architecture Overview
+
+Director AI is architected as a decoupled, serverless-friendly SaaS application deployed on zero-cost cloud tiers.
+
+```
+┌─────────────────┐       HTTPS       ┌───────────────────────┐
+│     Vercel      │ ────────────────> │     Render (free)     │
+│ Next.js 15 App  │   /api/v1 proxy   │    FastAPI Backend    │
+└─────────────────┘                   └───┬───────┬───────┬───┘
+                                          │       │       │
+                      ┌───────────────────┘       │       └───────────────────┐
+                      ▼                           ▼                           ▼
+            ┌───────────────────┐       ┌───────────────────┐       ┌───────────────────┐
+            │   Neon Postgres   │       │   Cloudflare R2   │       │   AI Providers    │
+            │ (SQLAlchemy+Async)│       │   (boto3 S3 API)  │       │ NVIDIA NIM → Gemini│
+            └───────────────────┘       └───────────────────┘       └───────────────────┘
+```
 
 ---
 
 ## 🛠️ Tech Stack
 
 ### Frontend
-- **Framework**: Next.js (App Router, TypeScript)
-- **Styling**: Vanilla CSS Modules (Glassmorphism, CSS Custom Properties)
-- **Authentication**: Firebase Auth (Google Sign-In, Email/Password)
-- **Testing**: Vitest, React Testing Library
-- **PDF Generation**: jsPDF, jsPDF-AutoTable
+- **Framework**: Next.js 15 (App Router, React 19, TypeScript)
+- **Styling**: Vanilla CSS Modules (Glassmorphism design system, CSS custom properties)
+- **Authentication**: Firebase Auth (Google OAuth & Email/Password)
+- **PDF Generation**: jsPDF & jsPDF-AutoTable
+- **Testing**: Vitest, React Testing Library, JSDOM
 
 ### Backend
-- **Framework**: FastAPI (Python, fully async)
-- **Database**: PostgreSQL (via `asyncpg` & SQLAlchemy)
-- **AI Integration**: Ollama (Running local vision models)
-- **Storage**: Local static file serving
-- **Caching**: Redis
+- **Framework**: FastAPI (Python 3.10+, fully async)
+- **Database**: PostgreSQL (Neon serverless / local Docker) via `SQLAlchemy 2` & `asyncpg`
+- **Database Migrations**: Alembic (version-controlled schema migrations)
+- **AI Vision Pipeline**: NVIDIA NIM Vision API (Primary) with Google Gemini Vision API fallback
+- **Storage**: S3-compatible Object Storage (`boto3` / Cloudflare R2) with local fallback in dev
+- **Auth & Security**: Firebase Admin SDK token verification middleware & IDOR checks
 - **Testing**: Pytest, Pytest-Asyncio, HTTPX, aioSQLite
 
 ---
 
 ## 📋 Prerequisites
 
-Before you start, make sure you have the following installed:
+Before running the project locally, ensure you have:
 - [Node.js](https://nodejs.org/) (v18+)
-- [Python](https://www.python.org/) (3.10+)
-- [Docker](https://www.docker.com/) & Docker Compose
-- [Ollama](https://ollama.ai/) running locally (with a vision model pulled, e.g., `ollama run llava` or `gemma3:4b`)
+- [Python](https://www.python.org/) (v3.10+)
+- [Docker](https://www.docker.com/) & Docker Compose (for local PostgreSQL)
+- API Keys:
+  - NVIDIA NIM API Key or Google Gemini API Key (for Vision AI analysis)
+  - Firebase Project Credentials (for Authentication)
 
 ---
 
 ## 🚀 Getting Started
 
-### 1. Database & Infrastructure
-Start the PostgreSQL and Redis services from the project root using Docker:
+### 1. Start Infrastructure (Local Dev)
+Launch the PostgreSQL database container from the project root:
 ```bash
 docker-compose up -d
 ```
 
 ### 2. Backend Setup
-Navigate to the `backend` directory, set up your Python environment, and start the API:
+Navigate to the `backend` folder, create a virtual environment, install dependencies, and configure environment variables:
 ```bash
 cd backend
 python -m venv venv
@@ -65,46 +93,63 @@ pip install -r requirements.txt
 # Configure environment variables
 cp .env.example .env
 ```
-Ensure your `OLLAMA_DEFAULT_MODEL` is set in `.env` and your `firebase-service-account.json` is correctly linked.
 
-Start the FastAPI development server:
+Ensure your `.env` is configured with database credentials, AI provider keys (`NVIDIA_NIM_API_KEY` or `GEMINI_API_KEY`), and Firebase service account path.
+
+Apply database migrations:
 ```bash
-uvicorn main:app --reload
+alembic upgrade head
+```
+
+Run the FastAPI development server:
+```bash
+uvicorn main:app --reload --port 8000
 ```
 
 ### 3. Frontend Setup
-Navigate to the `frontend` directory, install dependencies, and start the UI:
+Navigate to the `frontend` folder, install dependencies, and set up environment variables:
 ```bash
 cd frontend
 npm install
 
-# Configure Firebase environment variables
+# Configure environment variables
 cp .env.local.example .env.local
 ```
-*(Ensure you fill out `.env.local` with your Firebase project credentials.)*
+
+Fill out `.env.local` with your Firebase web configuration (`NEXT_PUBLIC_FIREBASE_API_KEY`, etc.).
 
 Start the Next.js development server:
 ```bash
 npm run dev
 ```
 
-Visit `http://localhost:3000` and start directing!
+Open `http://localhost:3000` in your browser.
 
 ---
 
 ## 🧪 Running Tests
 
-Director AI is built to be production-ready and includes full testing suites for both the backend API and frontend components.
-
-**Run Backend Tests:**
+### Backend Test Suite
+Runs unit, integration, and security ownership tests using Pytest:
 ```bash
 cd backend
 source venv/bin/activate
 PYTHONPATH=. pytest
 ```
 
-**Run Frontend Tests:**
+### Frontend Test Suite
+Runs unit and component integration tests using Vitest:
 ```bash
 cd frontend
 npm test
 ```
+
+---
+
+## 🚀 Deployment & Operations
+
+For detailed production deployment instructions, environment variables, startup security guards, and the 10-step verification runbook, refer to:
+- [`docs/architecture.md`](docs/architecture.md) — Production architecture design & quota model.
+- [`docs/deploy.md`](docs/deploy.md) — Render & Vercel deployment runbook.
+- [`docs/security.md`](docs/security.md) — Security policies & credential management.
+
