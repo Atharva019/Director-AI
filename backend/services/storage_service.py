@@ -54,7 +54,10 @@ class StorageService:
                 endpoint_url=self._endpoint,
                 aws_access_key_id=self._access_key,
                 aws_secret_access_key=self._secret_key,
-                config=Config(signature_version="s3v4"),
+                config=Config(
+                    signature_version="s3v4",
+                    s3={"addressing_style": "path"},
+                ),
                 region_name=self._region,
             )
         return self._client
@@ -66,8 +69,15 @@ class StorageService:
                 Bucket=self._bucket, Key=key, Body=data, ContentType=content_type
             )
         except Exception as exc:
-            logger.error("Failed to upload object %s to bucket %s: %s", key, self._bucket, exc)
-            raise RuntimeError(f"Storage upload failed for bucket '{self._bucket}': {exc}") from exc
+            err_msg = str(exc)
+            if hasattr(exc, "response") and isinstance(exc.response, dict):
+                err_code = exc.response.get("Error", {}).get("Code", "")
+                err_detail = exc.response.get("Error", {}).get("Message", "")
+                status_code = exc.response.get("ResponseMetadata", {}).get("HTTPStatusCode", "")
+                parts = [p for p in [f"HTTP {status_code}" if status_code else "", err_code, err_detail or str(exc)] if p]
+                err_msg = " | ".join(parts)
+            logger.error("Failed to upload object %s to bucket %s: %s", key, self._bucket, err_msg)
+            raise RuntimeError(f"Storage upload failed for bucket '{self._bucket}': {err_msg}") from exc
         logger.info("Uploaded object to storage: %s", key)
         return f"{self._public_base_url}/{key}"
 
