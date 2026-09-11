@@ -6,7 +6,7 @@ Director AI is a production-ready, cloud-native cinematography companion and sho
 
 ## ✨ Key Features
 
-- **Multi-Provider Vision AI Pipeline**: Reverse-engineers film reference images into precise lighting setups, focal lengths, camera angles, color swatches, and set instructions using **NVIDIA NIM** (`meta/llama-3.2-90b-vision-instruct`) with automatic fallback to **Google Gemini Vision** (`gemini-2.0-flash`).
+- **Multi-Provider Vision AI Pipeline**: Reverse-engineers film reference images into precise lighting setups, focal lengths, camera angles, color swatches, and set instructions using **NVIDIA NIM** (`meta/llama-3.2-90b-vision-instruct`) with automatic fallback to **Google Gemini Vision** (`gemini-3.8-flash`).
 - **Interactive Visual Overlays**:
   - **Composition Grids**: Toggle a Rule-of-Thirds composition overlay on reference stills.
   - **Color Palette Extraction**: Automatically extract dominant HEX color swatches for color grading.

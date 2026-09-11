@@ -41,7 +41,7 @@ class Settings(BaseSettings):
     # ── Gemini (LLM – fallback, disabled by default while testing NIM) ─
     GEMINI_ENABLED: bool = False
     GEMINI_API_KEY: str = ""
-    GEMINI_DEFAULT_MODEL: str = "gemini-2.0-flash"
+    GEMINI_DEFAULT_MODEL: str = "gemini-3.8-flash"
 
     # ── Firebase Auth ─────────────────────────────────────────────────────
     FIREBASE_CREDENTIALS_PATH: str = "./firebase-service-account.json"

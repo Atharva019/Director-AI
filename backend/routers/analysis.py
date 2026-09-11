@@ -2,6 +2,7 @@
 Scene-analysis router – upload an image, run AI analysis, and manage results.
 """
 
+import logging
 import uuid
 from typing import List, Optional
 
@@ -19,6 +20,8 @@ from services.image_service import ImageService
 from services.scene_analyzer import SceneAnalyzer
 from services.project_service import ProjectService
 from services import quota_service
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["Analysis"])
 
@@ -52,13 +55,23 @@ async def analyze_image(
         image_path, image_bytes = await _image_svc.save_upload(file)
     except ValueError as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail=str(exc))
+    except Exception as exc:
+        logger.error("Storage service error during upload: %s", exc, exc_info=True)
+        raise HTTPException(
+            status.HTTP_502_BAD_GATEWAY,
+            detail=f"Storage service error: {exc}",
+        )
 
     # 2. Run the analysis on the bytes we just stored — image_path is now a
     #    public object-storage URL, not a readable local path.
     try:
         result = await _analyzer.analyze(image_bytes)
-    except RuntimeError as exc:
-        raise HTTPException(status.HTTP_502_BAD_GATEWAY, detail=f"AI service error: {exc}")
+    except Exception as exc:
+        logger.error("AI service error during analysis: %s", exc, exc_info=True)
+        raise HTTPException(
+            status.HTTP_502_BAD_GATEWAY,
+            detail=f"AI service error: {exc}",
+        )
 
     # 3. Persist the analysis
     confidence = result.pop("confidence_score", 0.0)

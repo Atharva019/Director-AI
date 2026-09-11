@@ -61,9 +61,13 @@ class StorageService:
 
     def upload_bytes(self, data: bytes, ext: str, content_type: str) -> str:
         key = build_object_key(ext)
-        self._get_client().put_object(
-            Bucket=self._bucket, Key=key, Body=data, ContentType=content_type
-        )
+        try:
+            self._get_client().put_object(
+                Bucket=self._bucket, Key=key, Body=data, ContentType=content_type
+            )
+        except Exception as exc:
+            logger.error("Failed to upload object %s to bucket %s: %s", key, self._bucket, exc)
+            raise RuntimeError(f"Storage upload failed for bucket '{self._bucket}': {exc}") from exc
         logger.info("Uploaded object to storage: %s", key)
         return f"{self._public_base_url}/{key}"
 
