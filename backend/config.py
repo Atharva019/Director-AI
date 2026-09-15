@@ -147,9 +147,11 @@ def _env_presence_report() -> str:
     ]
     present = [n for n in expected if os.environ.get(n, "").strip()]
     missing = [n for n in expected if n not in present]
+    all_keys = sorted([k for k in os.environ.keys() if not k.startswith("_")])
     return (
         f"Environment seen by this process — set: {', '.join(present) or '(none)'}; "
-        f"empty or absent: {', '.join(missing) or '(none)'}."
+        f"empty or absent: {', '.join(missing) or '(none)'}. "
+        f"All env keys seen: {', '.join(all_keys)}"
     )
 
 

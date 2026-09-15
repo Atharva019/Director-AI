@@ -24,7 +24,8 @@ next-env.d.ts
 
 # Firebase & Secrets
 .env
-.env*.local
+.env*
+*.env
 backend/*.json
 *.pem
 *.key
