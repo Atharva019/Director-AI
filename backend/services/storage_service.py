@@ -82,6 +82,53 @@ class StorageService:
         return f"{self._public_base_url}/{key}"
 
 
+class LocalStorageService:
+    """Dev-only fallback: saves image bytes to the local UPLOAD_DIR.
+
+    Returns a relative ``/uploads/analyses/<filename>`` URL that the FastAPI
+    dev server serves via a StaticFiles mount (configured in main.py).  This
+    lets thumbnails appear in the history page without any S3 / cloud-storage
+    setup.
+
+    **Never use in production** — the ephemeral disk means files are lost on
+    every redeploy.
+    """
+
+    def __init__(self) -> None:
+        from pathlib import Path
+
+        settings = get_settings()
+        self._upload_dir = Path(settings.UPLOAD_DIR).resolve()
+        self._analyses_dir = self._upload_dir / "analyses"
+        self._analyses_dir.mkdir(parents=True, exist_ok=True)
+        logger.warning(
+            "LocalStorageService active — images are saved to %s. "
+            "Configure S3_* env vars for production.",
+            self._upload_dir,
+        )
+
+    def upload_bytes(self, data: bytes, ext: str, content_type: str) -> str:
+        key = f"{uuid.uuid4().hex}{ext}"
+        dest = self._analyses_dir / key
+        dest.write_bytes(data)
+        logger.info("Saved upload locally: %s", dest)
+        # Return a path that the /uploads StaticFiles mount will resolve.
+        return f"/uploads/analyses/{key}"
+
+
 @lru_cache()
-def get_storage_service() -> StorageService:
-    return StorageService()
+def get_storage_service():
+    """Return the appropriate storage backend.
+
+    Uses S3-compatible object storage when fully configured; falls back to
+    local disk in development so thumbnails still render without any cloud
+    credentials.
+    """
+    settings = get_settings()
+    if settings.storage_enabled:
+        return StorageService()
+    logger.info(
+        "S3 storage not configured (storage_enabled=False). "
+        "Using LocalStorageService for dev."
+    )
+    return LocalStorageService()

@@ -195,8 +195,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Uploaded images are served straight from Cloudflare R2, not from this app —
-# free-tier hosts have an ephemeral disk, so there is nothing local to mount.
+# In production, uploaded images are served straight from Cloudflare R2 (or
+# whichever S3-compatible provider is configured) — free-tier hosts have an
+# ephemeral disk so there is nothing local to mount.
+#
+# In development (no S3 configured), LocalStorageService writes files to
+# UPLOAD_DIR and returns /uploads/... paths.  Mount that directory here so
+# the browser can actually fetch the thumbnails.
+if not settings.storage_enabled:
+    import os
+    from pathlib import Path
+    from fastapi.staticfiles import StaticFiles
+
+    upload_dir = Path(settings.UPLOAD_DIR).resolve()
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    app.mount("/uploads", StaticFiles(directory=str(upload_dir)), name="uploads")
+    logger.info("Dev mode: serving local uploads from %s at /uploads", upload_dir)
+
 
 # ── Routers (all under /api/v1) ──────────────────────────────────────────────
 

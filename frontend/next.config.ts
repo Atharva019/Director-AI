@@ -16,6 +16,13 @@ const nextConfig: NextConfig = {
         source: "/api/v1/:path*",
         destination: `${API_ORIGIN}/api/v1/:path*`,
       },
+      // In dev (no S3 configured), the backend's LocalStorageService saves
+      // images locally and returns /uploads/... paths. Proxy those through
+      // so thumbnails load correctly in the browser.
+      {
+        source: "/uploads/:path*",
+        destination: `${API_ORIGIN}/uploads/:path*`,
+      },
     ];
   },
   images: {
